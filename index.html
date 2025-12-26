@@ -674,7 +674,9 @@
                 tiltGroup.rotation.z = THREE.MathUtils.degToRad(planet.tilt);
                 pivot.add(tiltGroup);
 
-                const radius = (planet.diameter / 2) * SIZE_SCALE;
+                const needsPickBoost = ["mercury", "venus", "earth", "mars"].includes(planet.id);
+                const sizeBoost = needsPickBoost ? 1.45 : 1;
+                const radius = (planet.diameter / 2) * SIZE_SCALE * sizeBoost;
                 const geometry = new THREE.SphereGeometry(radius, 48, 48);
                 const material = new THREE.MeshStandardMaterial({
                     color: planet.color,
@@ -689,9 +691,8 @@
                 tiltGroup.add(mesh);
                 planetMeshes.push(mesh);
 
-                const needsPickBoost = ["mercury", "venus", "earth", "mars"].includes(planet.id);
                 if (needsPickBoost) {
-                    const pickGeometry = new THREE.SphereGeometry(radius * 2.2, 16, 16);
+                    const pickGeometry = new THREE.SphereGeometry(radius * 2.8, 16, 16);
                     const pickMaterial = new THREE.MeshBasicMaterial({
                         color: 0xffffff,
                         transparent: true,
