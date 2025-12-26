@@ -303,8 +303,8 @@
 
         @media (max-width: 1024px) and (pointer: coarse) {
             .panel {
-                transform: scale(0.85);
-                width: 210px;
+                transform: scale(1.4);
+                width: 250px;
             }
 
             .title {
@@ -328,6 +328,10 @@
                 padding: 10px 12px;
             }
 
+            .hint {
+                bottom: 12px;
+            }
+
             .info {
                 top: 90px;
                 left: 20px;
@@ -339,6 +343,16 @@
             .title {
                 font-size: 22px;
                 letter-spacing: 3px;
+            }
+        }
+
+        @media (max-width: 768px) and (orientation: portrait) {
+            .panel {
+                bottom: 72px;
+            }
+
+            .hint {
+                bottom: 18px;
             }
         }
     </style>
