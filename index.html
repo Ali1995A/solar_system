@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solar System Explorer</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-WDYTYY158T"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-WDYTYY158T');
+    </script>
     <style>
         :root {
             --bg: #05060b;
@@ -30,6 +39,10 @@
         #scene {
             position: fixed;
             inset: 0;
+        }
+
+        #scene canvas {
+            touch-action: none;
         }
 
         .overlay {
@@ -273,6 +286,37 @@
             letter-spacing: 1px;
         }
 
+        @supports (padding: env(safe-area-inset-top)) {
+            .title {
+                top: calc(22px + env(safe-area-inset-top));
+            }
+
+            .panel {
+                top: calc(80px + env(safe-area-inset-top));
+                left: calc(20px + env(safe-area-inset-left));
+            }
+
+            .hint {
+                bottom: calc(22px + env(safe-area-inset-bottom));
+            }
+        }
+
+        @media (max-width: 1024px) and (pointer: coarse) {
+            .panel {
+                transform: scale(0.85);
+                width: 210px;
+            }
+
+            .title {
+                font-size: 20px;
+                letter-spacing: 3px;
+            }
+
+            .tooltip {
+                display: none;
+            }
+        }
+
         @media (max-width: 768px) {
             .panel {
                 top: auto;
@@ -280,6 +324,8 @@
                 left: 20px;
                 right: 20px;
                 width: auto;
+                transform: none;
+                padding: 10px 12px;
             }
 
             .info {
@@ -451,8 +497,9 @@
         camera.position.set(120, 80, 160);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const isTouchDevice = window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isTouchDevice ? 1.5 : 2));
         renderer.outputEncoding = THREE.sRGBEncoding;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.05;
@@ -484,8 +531,8 @@
         function createStarfield() {
             const starGroup = new THREE.Group();
             const layers = [
-                { count: 7000, min: 650, max: 1150, size: 1.2, opacity: 0.8 },
-                { count: 2000, min: 450, max: 850, size: 2.4, opacity: 0.5 }
+                { count: isTouchDevice ? 3500 : 7000, min: 650, max: 1150, size: 1.2, opacity: 0.8 },
+                { count: isTouchDevice ? 1000 : 2000, min: 450, max: 850, size: 2.4, opacity: 0.5 }
             ];
 
             layers.forEach(layer => {
@@ -822,7 +869,8 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            const touch = window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, touch ? 1.5 : 2));
         });
 
         animate();
