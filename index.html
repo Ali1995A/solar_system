@@ -639,6 +639,7 @@
         }
 
         const planetMeshes = [];
+        const pickTargets = [];
         const orbitGroups = [];
         const focusOptions = document.getElementById("focus");
 
@@ -686,6 +687,24 @@
                 mesh.receiveShadow = true;
                 mesh.userData = { ...planet, radius };
                 tiltGroup.add(mesh);
+                planetMeshes.push(mesh);
+
+                const needsPickBoost = ["mercury", "venus", "earth", "mars"].includes(planet.id);
+                if (needsPickBoost) {
+                    const pickGeometry = new THREE.SphereGeometry(radius * 2.2, 16, 16);
+                    const pickMaterial = new THREE.MeshBasicMaterial({
+                        color: 0xffffff,
+                        transparent: true,
+                        opacity: 0.0,
+                        depthWrite: false
+                    });
+                    const pickMesh = new THREE.Mesh(pickGeometry, pickMaterial);
+                    pickMesh.userData = mesh.userData;
+                    mesh.add(pickMesh);
+                    pickTargets.push(pickMesh);
+                } else {
+                    pickTargets.push(mesh);
+                }
 
                 if (planet.id === "saturn") {
                     const ringGeometry = new THREE.RingGeometry(radius * 1.4, radius * 2.4, 128);
@@ -733,6 +752,7 @@
                     mesh.add(moonOrbit);
                     orbitGroup.userData.moonOrbit = moonOrbit;
                     planetMeshes.push(moonMesh);
+                    pickTargets.push(moonMesh);
                 }
 
                 scene.add(orbitGroup);
@@ -743,8 +763,6 @@
                     mesh,
                     distance
                 });
-
-                planetMeshes.push(mesh);
 
                 const option = document.createElement("option");
                 option.value = planet.id;
@@ -786,7 +804,7 @@
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
-            const hits = raycaster.intersectObjects(planetMeshes, false);
+            const hits = raycaster.intersectObjects(pickTargets, false);
             if (hits.length) {
                 showInfo(hits[0].object.userData);
                 return true;
@@ -820,7 +838,7 @@
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
-            const hits = raycaster.intersectObjects(planetMeshes, false);
+            const hits = raycaster.intersectObjects(pickTargets, false);
             if (hits.length) {
                 const data = hits[0].object.userData;
                 tooltipName.textContent = data.name;
