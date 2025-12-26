@@ -95,6 +95,59 @@
             margin-bottom: 14px;
         }
 
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .switch {
+            position: relative;
+            width: 38px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            inset: 0;
+            background: rgba(111, 177, 255, 0.25);
+            border-radius: 999px;
+            border: 1px solid rgba(111, 177, 255, 0.35);
+            transition: 0.2s ease;
+        }
+
+        .slider::before {
+            content: "";
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            left: 3px;
+            top: 2px;
+            background: #d6e7ff;
+            border-radius: 50%;
+            transition: 0.2s ease;
+            box-shadow: 0 0 8px rgba(111, 177, 255, 0.6);
+        }
+
+        .switch input:checked + .slider {
+            background: rgba(111, 177, 255, 0.55);
+            border-color: rgba(111, 177, 255, 0.7);
+            box-shadow: 0 0 12px rgba(111, 177, 255, 0.45);
+        }
+
+        .switch input:checked + .slider::before {
+            transform: translateX(18px);
+            background: #ffffff;
+        }
+
         label {
             display: block;
             font-size: 10px;
@@ -252,6 +305,7 @@
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
             color: var(--text);
             opacity: 0;
+            visibility: hidden;
             transform: translateY(6px);
             transition: opacity 0.2s ease, transform 0.2s ease;
             pointer-events: none;
@@ -260,6 +314,13 @@
 
         .tooltip.active {
             opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .tooltip.force {
+            opacity: 1;
+            visibility: visible;
             transform: translateY(0);
         }
 
@@ -314,7 +375,8 @@
             }
 
             .tooltip {
-                display: none;
+                opacity: 0;
+                visibility: hidden;
             }
         }
 
@@ -383,6 +445,16 @@
                 <select id="focus" class="select">
                     <option value="">Free Camera</option>
                 </select>
+            </div>
+            <div class="control">
+                <label>Constellation Lines</label>
+                <div class="toggle-row">
+                    <span style="font-size: 10px; color: var(--muted); letter-spacing: 1px;">Zodiac</span>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-constellations">
+                        <span class="slider"></span>
+                    </label>
+                </div>
             </div>
             <div class="control">
                 <button class="btn" id="toggle">Pause</button>
@@ -640,7 +712,8 @@
         }
 
         const planetMeshes = [];
-        const pickTargets = [];
+        const planetPickTargets = [];
+        const constellationPickTargets = [];
         const orbitGroups = [];
         const focusOptions = document.getElementById("focus");
 
@@ -691,6 +764,7 @@
                 mesh.userData = { ...planet, radius };
                 tiltGroup.add(mesh);
                 planetMeshes.push(mesh);
+                planetPickTargets.push(mesh);
 
                 if (needsPickBoost) {
                     const pickGeometry = new THREE.SphereGeometry(radius * 2.8, 16, 16);
@@ -703,9 +777,7 @@
                     const pickMesh = new THREE.Mesh(pickGeometry, pickMaterial);
                     pickMesh.userData = mesh.userData;
                     mesh.add(pickMesh);
-                    pickTargets.push(pickMesh);
-                } else {
-                    pickTargets.push(mesh);
+                    planetPickTargets.push(pickMesh);
                 }
 
                 if (planet.id === "saturn") {
@@ -754,7 +826,7 @@
                     mesh.add(moonOrbit);
                     orbitGroup.userData.moonOrbit = moonOrbit;
                     planetMeshes.push(moonMesh);
-                    pickTargets.push(moonMesh);
+                    planetPickTargets.push(moonMesh);
                 }
 
                 scene.add(orbitGroup);
@@ -777,12 +849,201 @@
         createSun();
         createPlanets();
 
+        let constellationGroup = null;
+        let constellationsEnabled = false;
+        const zodiacData = [
+            {
+                name: "Aries",
+                fact: "Aries is one of the oldest recognized constellations in the night sky.",
+                points: [[0, 0], [0.5, 0.2], [1.1, 0.5], [1.6, 0.2]],
+                lines: [[0, 1], [1, 2], [2, 3]]
+            },
+            {
+                name: "Taurus",
+                fact: "Taurus hosts the bright star Aldebaran and the Pleiades cluster.",
+                points: [[0, 0], [0.6, 0.2], [1.2, 0.1], [1.8, -0.2], [0.5, -0.6], [-0.1, -0.8]],
+                lines: [[0, 1], [1, 2], [2, 3], [1, 4], [4, 5]]
+            },
+            {
+                name: "Gemini",
+                fact: "Gemini is known for its twin stars Castor and Pollux.",
+                points: [[0, 0], [0, 0.8], [0.1, 1.6], [0.7, 0.1], [0.7, 0.9], [0.8, 1.7]],
+                lines: [[0, 1], [1, 2], [3, 4], [4, 5], [0, 3], [2, 5]]
+            },
+            {
+                name: "Cancer",
+                fact: "Cancer is a faint constellation that contains the Beehive Cluster.",
+                points: [[0, 0], [0.4, 0.2], [0.8, 0.0], [0.5, -0.4], [0.1, -0.3]],
+                lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]]
+            },
+            {
+                name: "Leo",
+                fact: "Leo's pattern resembles a crouching lion with the star Regulus.",
+                points: [[0, 0], [0.5, 0.3], [1.0, 0.1], [1.4, -0.2], [1.8, -0.1], [2.2, 0.2], [1.2, 0.5]],
+                lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [2, 6]]
+            },
+            {
+                name: "Virgo",
+                fact: "Virgo is the largest zodiac constellation and hosts the bright star Spica.",
+                points: [[0, 0], [0.4, 0.6], [0.8, 1.2], [1.3, 0.8], [1.7, 0.3], [2.0, -0.2], [1.0, -0.4]],
+                lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [4, 6]]
+            },
+            {
+                name: "Libra",
+                fact: "Libra represents the scales and is one of the few zodiac constellations named after an object.",
+                points: [[0, 0], [0.6, 0.3], [1.2, 0.0], [1.8, -0.3], [1.2, 0.6]],
+                lines: [[0, 1], [1, 2], [2, 3], [1, 4], [4, 2]]
+            },
+            {
+                name: "Scorpio",
+                fact: "Scorpio is easy to spot by its long, curving tail and the red star Antares.",
+                points: [[0, 0], [0.4, 0.4], [0.9, 0.7], [1.4, 0.5], [1.8, 0.1], [2.2, -0.3], [2.6, -0.7]],
+                lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6]]
+            },
+            {
+                name: "Sagittarius",
+                fact: "Sagittarius points toward the center of the Milky Way.",
+                points: [[0, 0], [0.6, 0.2], [1.2, 0.0], [1.6, 0.4], [1.4, -0.3], [0.9, -0.6], [0.4, -0.4]],
+                lines: [[0, 1], [1, 2], [2, 3], [2, 4], [4, 5], [5, 6], [6, 0]]
+            },
+            {
+                name: "Capricorn",
+                fact: "Capricorn is a faint constellation shaped like a wide triangle.",
+                points: [[0, 0], [0.5, 0.4], [1.0, 0.1], [1.5, -0.3], [0.8, -0.6]],
+                lines: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 0]]
+            },
+            {
+                name: "Aquarius",
+                fact: "Aquarius is known for its \"water jar\" asterism.",
+                points: [[0, 0], [0.5, 0.2], [1.0, -0.1], [1.5, 0.2], [2.0, -0.1], [1.2, -0.5]],
+                lines: [[0, 1], [1, 2], [2, 3], [3, 4], [2, 5]]
+            },
+            {
+                name: "Pisces",
+                fact: "Pisces is represented by two fish connected by a cord of stars.",
+                points: [[0, 0], [0.6, 0.3], [1.2, 0.1], [1.8, 0.4], [2.4, 0.2], [1.2, -0.4], [0.6, -0.6]],
+                lines: [[0, 1], [1, 2], [2, 3], [3, 4], [2, 5], [5, 6], [6, 0]]
+            }
+        ];
+
+        function createConstellations() {
+            const group = new THREE.Group();
+            const lineMaterial = new THREE.LineBasicMaterial({
+                color: 0x9fd1ff,
+                transparent: true,
+                opacity: 0.75
+            });
+            const pointMaterial = new THREE.PointsMaterial({
+                color: 0xe7f0ff,
+                size: 3.2,
+                sizeAttenuation: true,
+                transparent: true,
+                opacity: 0.95,
+                depthWrite: false
+            });
+
+            const baseRadius = 650;
+            const eclipticTilt = THREE.MathUtils.degToRad(23.4);
+            const spread = 24;
+
+            zodiacData.forEach((zodiac, index) => {
+                const angle = (index / zodiacData.length) * Math.PI * 2;
+                const direction = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+                direction.applyAxisAngle(new THREE.Vector3(1, 0, 0), eclipticTilt);
+
+                const center = direction.clone().multiplyScalar(baseRadius);
+                const east = new THREE.Vector3(0, 1, 0).cross(direction).normalize();
+                const north = direction.clone().cross(east).normalize();
+
+                const points = zodiac.points.map(point => {
+                    return center.clone()
+                        .add(east.clone().multiplyScalar(point[0] * spread))
+                        .add(north.clone().multiplyScalar(point[1] * spread));
+                });
+
+                const linePositions = [];
+                zodiac.lines.forEach(([a, b]) => {
+                    linePositions.push(points[a], points[b]);
+                });
+
+                const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePositions);
+                const line = new THREE.LineSegments(lineGeometry, lineMaterial);
+                group.add(line);
+
+                const pointGeometry = new THREE.BufferGeometry().setFromPoints(points);
+                const stars = new THREE.Points(pointGeometry, pointMaterial);
+                group.add(stars);
+
+                const pickMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 });
+                const pick = new THREE.Mesh(
+                    new THREE.SphereGeometry(22, 12, 12),
+                    pickMaterial
+                );
+                pick.position.copy(center);
+                pick.userData = { type: "constellation", name: zodiac.name, fact: zodiac.fact };
+                constellationPickTargets.push(pick);
+                group.add(pick);
+
+                points.forEach(point => {
+                    const pointPick = new THREE.Mesh(
+                        new THREE.SphereGeometry(10, 10, 10),
+                        pickMaterial
+                    );
+                    pointPick.position.copy(point);
+                    pointPick.userData = { type: "constellation", name: zodiac.name, fact: zodiac.fact };
+                    constellationPickTargets.push(pointPick);
+                    group.add(pointPick);
+                });
+            });
+
+            group.visible = false;
+            scene.add(group);
+            return group;
+        }
+
+        constellationGroup = createConstellations();
+
         const raycaster = new THREE.Raycaster();
+        raycaster.params.Points.threshold = 6;
+        raycaster.params.Line.threshold = 2;
         const mouse = new THREE.Vector2();
         const info = document.getElementById("info");
         const tooltip = document.getElementById("tooltip");
         const tooltipName = document.getElementById("tooltipName");
         const tooltipFact = document.getElementById("tooltipFact");
+        let tooltipTimeout = null;
+
+        function getPickTargets() {
+            return constellationsEnabled
+                ? planetPickTargets.concat(constellationPickTargets)
+                : planetPickTargets;
+        }
+
+        function showTooltipAt(event, data, force) {
+            tooltipName.textContent = data.name;
+            tooltipFact.textContent = data.fact || "";
+            const padding = 18;
+            const tooltipWidth = tooltip.offsetWidth || 220;
+            const tooltipHeight = tooltip.offsetHeight || 70;
+            let left = event.clientX + padding;
+            let top = event.clientY + padding;
+            if (left + tooltipWidth > window.innerWidth) {
+                left = event.clientX - tooltipWidth - padding;
+            }
+            if (top + tooltipHeight > window.innerHeight) {
+                top = event.clientY - tooltipHeight - padding;
+            }
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top = `${top}px`;
+            tooltip.classList.add("active");
+            if (force) {
+                tooltip.classList.add("force");
+                clearTimeout(tooltipTimeout);
+                tooltipTimeout = setTimeout(() => {
+                    tooltip.classList.remove("active", "force");
+                }, 2000);
+            }
+        }
 
         function showInfo(data) {
             document.getElementById("infoName").textContent = data.name;
@@ -806,9 +1067,14 @@
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
-            const hits = raycaster.intersectObjects(pickTargets, false);
+            const hits = raycaster.intersectObjects(getPickTargets(), false);
             if (hits.length) {
-                showInfo(hits[0].object.userData);
+                const data = hits[0].object.userData;
+                if (data.type === "constellation") {
+                    showTooltipAt(event, data, true);
+                } else {
+                    showInfo(data);
+                }
                 return true;
             }
             return false;
@@ -840,34 +1106,21 @@
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
-            const hits = raycaster.intersectObjects(pickTargets, false);
+            const hits = raycaster.intersectObjects(getPickTargets(), false);
             if (hits.length) {
                 const data = hits[0].object.userData;
-                tooltipName.textContent = data.name;
-                tooltipFact.textContent = data.fact || "";
-                const padding = 18;
-                const tooltipWidth = tooltip.offsetWidth || 240;
-                const tooltipHeight = tooltip.offsetHeight || 80;
-                let left = event.clientX + padding;
-                let top = event.clientY + padding;
-                if (left + tooltipWidth > window.innerWidth) {
-                    left = event.clientX - tooltipWidth - padding;
+                if (data.type !== "constellation" || constellationsEnabled) {
+                    showTooltipAt(event, data, false);
                 }
-                if (top + tooltipHeight > window.innerHeight) {
-                    top = event.clientY - tooltipHeight - padding;
-                }
-                tooltip.style.left = `${left}px`;
-                tooltip.style.top = `${top}px`;
-                tooltip.classList.add("active");
                 document.body.style.cursor = "pointer";
             } else {
-                tooltip.classList.remove("active");
+                tooltip.classList.remove("active", "force");
                 document.body.style.cursor = "default";
             }
         });
 
         renderer.domElement.addEventListener("mouseleave", () => {
-            tooltip.classList.remove("active");
+            tooltip.classList.remove("active", "force");
             document.body.style.cursor = "default";
         });
 
@@ -889,6 +1142,15 @@
 
         focusOptions.addEventListener("change", event => {
             focusTarget = event.target.value;
+        });
+
+        const toggleConstellations = document.getElementById("toggle-constellations");
+        toggleConstellations.addEventListener("change", event => {
+            constellationsEnabled = event.target.checked;
+            if (constellationGroup) {
+                constellationGroup.visible = constellationsEnabled;
+            }
+            tooltip.classList.remove("active", "force");
         });
 
         const clock = new THREE.Clock();
