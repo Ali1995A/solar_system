@@ -781,19 +781,44 @@
             info.classList.remove("active");
         });
 
-        renderer.domElement.addEventListener("click", event => {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        function pickPlanet(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
             const hits = raycaster.intersectObjects(planetMeshes, false);
             if (hits.length) {
                 showInfo(hits[0].object.userData);
+                return true;
             }
+            return false;
+        }
+
+        let pointerDown = null;
+
+        renderer.domElement.addEventListener("pointerdown", event => {
+            if (!event.isPrimary) return;
+            pointerDown = { x: event.clientX, y: event.clientY, time: performance.now() };
+        });
+
+        renderer.domElement.addEventListener("pointerup", event => {
+            if (!event.isPrimary || !pointerDown) return;
+            const dx = event.clientX - pointerDown.x;
+            const dy = event.clientY - pointerDown.y;
+            const moved = Math.hypot(dx, dy);
+            pointerDown = null;
+            if (moved > 8) return;
+            pickPlanet(event);
+        });
+
+        renderer.domElement.addEventListener("pointercancel", () => {
+            pointerDown = null;
         });
 
         renderer.domElement.addEventListener("mousemove", event => {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             raycaster.setFromCamera(mouse, camera);
             const hits = raycaster.intersectObjects(planetMeshes, false);
             if (hits.length) {
