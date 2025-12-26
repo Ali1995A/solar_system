@@ -518,6 +518,7 @@
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         const isTouchDevice = window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
+        const isMobile = window.matchMedia("(max-width: 600px)").matches;
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, isTouchDevice ? 1.5 : 2));
         renderer.outputEncoding = THREE.sRGBEncoding;
@@ -675,7 +676,7 @@
                 pivot.add(tiltGroup);
 
                 const needsPickBoost = ["mercury", "venus", "earth", "mars"].includes(planet.id);
-                const sizeBoost = needsPickBoost ? 1.45 : 1;
+                const sizeBoost = needsPickBoost ? (isMobile ? 1.65 : 1.45) : 1;
                 const radius = (planet.diameter / 2) * SIZE_SCALE * sizeBoost;
                 const geometry = new THREE.SphereGeometry(radius, 48, 48);
                 const material = new THREE.MeshStandardMaterial({
