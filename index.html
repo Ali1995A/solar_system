@@ -731,7 +731,7 @@
                     moonPivot.position.x = moonDistance;
                     moonOrbit.add(moonPivot);
 
-                    const moonRadius = (moonData.diameter / 2) * SIZE_SCALE * 1.05;
+                    const moonRadius = (moonData.diameter / 2) * SIZE_SCALE * 1.4;
                     const moonGeometry = new THREE.SphereGeometry(moonRadius, 32, 32);
                     const moonMaterial = new THREE.MeshStandardMaterial({
                         color: moonData.color,
