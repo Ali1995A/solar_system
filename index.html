@@ -81,6 +81,12 @@
             box-shadow: 0 16px 50px rgba(0, 0, 0, 0.45);
             transform: scale(0.7);
             transform-origin: top left;
+            transition: opacity 0.25s ease;
+        }
+
+        .panel.is-hidden {
+            opacity: 0;
+            pointer-events: none;
         }
 
         .panel h3 {
@@ -599,6 +605,49 @@
         renderer.setClearColor(0x02040a, 1);
         document.getElementById("scene").appendChild(renderer.domElement);
 
+        const controlsPanel = document.querySelector(".panel");
+        let controlsPanelVisible = true;
+        let controlsPanelHideTimer = null;
+        const controlsPanelIsMobileUi = () => window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
+        const setControlsPanelVisible = visible => {
+            if (!controlsPanel) return;
+            controlsPanelVisible = visible;
+            controlsPanel.classList.toggle("is-hidden", !visible);
+        };
+        const clearControlsPanelHideTimer = () => {
+            if (controlsPanelHideTimer) {
+                clearTimeout(controlsPanelHideTimer);
+                controlsPanelHideTimer = null;
+            }
+        };
+        const scheduleControlsPanelHide = (delayMs = 2200) => {
+            clearControlsPanelHideTimer();
+            if (!controlsPanelIsMobileUi() || !controlsPanelVisible) return;
+            controlsPanelHideTimer = setTimeout(() => {
+                setControlsPanelVisible(false);
+            }, delayMs);
+        };
+        const keepControlsPanelVisibleBriefly = (autoHideDelayMs = 4000) => {
+            if (!controlsPanelIsMobileUi()) return;
+            setControlsPanelVisible(true);
+            scheduleControlsPanelHide(autoHideDelayMs);
+        };
+
+        if (controlsPanel) {
+            controlsPanel.addEventListener("pointerdown", () => {
+                if (!controlsPanelIsMobileUi()) return;
+                clearControlsPanelHideTimer();
+            });
+            controlsPanel.addEventListener("pointerup", () => {
+                if (!controlsPanelIsMobileUi()) return;
+                scheduleControlsPanelHide(1800);
+            });
+            controlsPanel.addEventListener("pointercancel", () => {
+                if (!controlsPanelIsMobileUi()) return;
+                scheduleControlsPanelHide(1800);
+            });
+        }
+
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
@@ -1094,7 +1143,10 @@
             const moved = Math.hypot(dx, dy);
             pointerDown = null;
             if (moved > 8) return;
-            pickPlanet(event);
+            const picked = pickPlanet(event);
+            if (!picked && controlsPanelIsMobileUi() && !controlsPanelVisible) {
+                keepControlsPanelVisibleBriefly();
+            }
         });
 
         renderer.domElement.addEventListener("pointercancel", () => {
@@ -1133,15 +1185,18 @@
         speedInput.addEventListener("input", event => {
             speed = parseFloat(event.target.value);
             speedValue.textContent = `${speed.toFixed(1)}x`;
+            scheduleControlsPanelHide(1800);
         });
 
         document.getElementById("toggle").addEventListener("click", event => {
             isPaused = !isPaused;
             event.target.textContent = isPaused ? "Play" : "Pause";
+            scheduleControlsPanelHide(1800);
         });
 
         focusOptions.addEventListener("change", event => {
             focusTarget = event.target.value;
+            scheduleControlsPanelHide(1800);
         });
 
         const toggleConstellations = document.getElementById("toggle-constellations");
@@ -1151,6 +1206,7 @@
                 constellationGroup.visible = constellationsEnabled;
             }
             tooltip.classList.remove("active", "force");
+            scheduleControlsPanelHide(1800);
         });
 
         const clock = new THREE.Clock();
@@ -1198,6 +1254,10 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             const touch = window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, touch ? 1.5 : 2));
+            if (!controlsPanelIsMobileUi()) {
+                clearControlsPanelHideTimer();
+                setControlsPanelVisible(true);
+            }
         });
 
         animate();
