@@ -1199,13 +1199,17 @@
             return cap;
         })();
 
-        const getAppliedSpeed = () => Math.min(speedRequested, environmentSpeedCap);
+        let performanceSpeedMultiplier = 1;
+        let smoothedDelta = 1 / 60;
+        const targetDelta = isTouchDevice ? 1 / 45 : 1 / 60;
+
+        const getAppliedSpeed = () => {
+            const capped = Math.min(speedRequested, environmentSpeedCap);
+            return capped * performanceSpeedMultiplier;
+        };
+
         const updateSpeedLabel = () => {
-            const applied = getAppliedSpeed();
-            speedValue.textContent =
-                applied === speedRequested
-                    ? `${applied.toFixed(1)}x`
-                    : `${speedRequested.toFixed(1)}x (实际 ${applied.toFixed(1)}x)`;
+            speedValue.textContent = `${speedRequested.toFixed(1)}x`;
         };
 
         speedInput.max = String(SPEED_UI_MAX);
@@ -1253,7 +1257,16 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            const delta = Math.min(clock.getDelta(), 0.05);
+            const rawDelta = clock.getDelta();
+            const delta = Math.min(rawDelta, 0.05);
+
+            smoothedDelta = smoothedDelta * 0.92 + rawDelta * 0.08;
+            if (smoothedDelta > targetDelta * 1.2) {
+                performanceSpeedMultiplier = Math.max(0.12, performanceSpeedMultiplier * 0.97);
+            } else if (smoothedDelta < targetDelta * 0.92) {
+                performanceSpeedMultiplier = Math.min(1, performanceSpeedMultiplier * 1.01);
+            }
+
             const speed = getAppliedSpeed();
 
             if (!isPaused) {
