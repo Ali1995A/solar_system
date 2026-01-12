@@ -442,7 +442,7 @@
             <div class="control">
                 <label>Simulation Speed</label>
                 <div class="row">
-                    <input id="speed" type="range" min="0.1" max="10" step="0.1" value="1">
+                    <input id="speed" type="range" min="0.1" max="100" step="0.1" value="1">
                     <div class="speed" id="speedValue">1.0x</div>
                 </div>
             </div>
@@ -669,6 +669,7 @@
         const SIZE_SCALE = 0.000015;
         const DIST_SCALE = 45;
         const BASE_ORBIT_SPEED = 0.45;
+        const INNER_PLANET_SIZE_MULTIPLIER = 3;
 
         function createStarfield() {
             const starGroup = new THREE.Group();
@@ -797,9 +798,10 @@
                 tiltGroup.rotation.z = THREE.MathUtils.degToRad(planet.tilt);
                 pivot.add(tiltGroup);
 
-                const needsPickBoost = ["mercury", "venus", "earth", "mars"].includes(planet.id);
-                const sizeBoost = needsPickBoost ? (isMobile ? 1.65 : 1.45) : 1;
-                const radius = (planet.diameter / 2) * SIZE_SCALE * sizeBoost;
+                const isInnerPlanet = ["mercury", "venus", "earth", "mars"].includes(planet.id);
+                const sizeBoost = isInnerPlanet ? (isMobile ? 1.65 : 1.45) : 1;
+                const visualScale = isInnerPlanet ? INNER_PLANET_SIZE_MULTIPLIER : 1;
+                const radius = (planet.diameter / 2) * SIZE_SCALE * sizeBoost * visualScale;
                 const geometry = new THREE.SphereGeometry(radius, 48, 48);
                 const material = new THREE.MeshStandardMaterial({
                     color: planet.color,
@@ -815,7 +817,7 @@
                 planetMeshes.push(mesh);
                 planetPickTargets.push(mesh);
 
-                if (needsPickBoost) {
+                if (isInnerPlanet) {
                     const pickGeometry = new THREE.SphereGeometry(radius * 2.8, 16, 16);
                     const pickMaterial = new THREE.MeshBasicMaterial({
                         color: 0xffffff,
@@ -852,7 +854,7 @@
                     moonPivot.position.x = moonDistance;
                     moonOrbit.add(moonPivot);
 
-                    const moonRadius = (moonData.diameter / 2) * SIZE_SCALE * 1.4;
+                    const moonRadius = (moonData.diameter / 2) * SIZE_SCALE * 1.4 * visualScale;
                     const moonGeometry = new THREE.SphereGeometry(moonRadius, 32, 32);
                     const moonMaterial = new THREE.MeshStandardMaterial({
                         color: moonData.color,
@@ -1177,16 +1179,42 @@
         });
 
         let isPaused = false;
-        let speed = 1;
+        let speedRequested = 1;
         let focusTarget = "";
 
         const speedInput = document.getElementById("speed");
         const speedValue = document.getElementById("speedValue");
+
+        const SPEED_UI_MAX = 100;
+        const environmentSpeedCap = (() => {
+            const cores = navigator.hardwareConcurrency || 4;
+            const memory = navigator.deviceMemory || 4;
+            let cap = SPEED_UI_MAX;
+
+            if (cores <= 2 || memory <= 2) cap = 35;
+            else if (cores <= 4 || memory <= 4) cap = 60;
+            else if (cores <= 6 || memory <= 6) cap = 80;
+
+            if (isTouchDevice) cap = Math.min(cap, 80);
+            return cap;
+        })();
+
+        const getAppliedSpeed = () => Math.min(speedRequested, environmentSpeedCap);
+        const updateSpeedLabel = () => {
+            const applied = getAppliedSpeed();
+            speedValue.textContent =
+                applied === speedRequested
+                    ? `${applied.toFixed(1)}x`
+                    : `${speedRequested.toFixed(1)}x (实际 ${applied.toFixed(1)}x)`;
+        };
+
+        speedInput.max = String(SPEED_UI_MAX);
         speedInput.addEventListener("input", event => {
-            speed = parseFloat(event.target.value);
-            speedValue.textContent = `${speed.toFixed(1)}x`;
+            speedRequested = parseFloat(event.target.value);
+            updateSpeedLabel();
             scheduleControlsPanelHide(1800);
         });
+        updateSpeedLabel();
 
         document.getElementById("toggle").addEventListener("click", event => {
             isPaused = !isPaused;
@@ -1225,7 +1253,8 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            const delta = clock.getDelta();
+            const delta = Math.min(clock.getDelta(), 0.05);
+            const speed = getAppliedSpeed();
 
             if (!isPaused) {
                 orbitGroups.forEach(entry => {
