@@ -593,7 +593,8 @@
                 <label class="switch"><input type="checkbox" id="toggle-guides"><span class="slider"></span></label>
             </div>
             <div id="elapsed">0.0 simulated days</div>
-            <p class="model-note">教学示意：圆形共面轨道，距离压缩，行星与月球放大。纹理为艺术示意，初始位置不代表今日星空。高速自转可能产生视觉混叠。</p>
+            <p class="model-note">教学示意：轨道与大小经过简化。地球使用 NASA Blue Marble 无云卫星合成图（2004年7月），其他天体纹理为艺术示意。初始位置不代表今日星空。</p>
+            <p class="model-note"><a href="https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-map/" target="_blank" rel="noopener noreferrer">地球影像来源 · NASA Earth Observatory</a></p>
             <p class="model-note">从黄道北侧俯视，八大行星均逆时针公转。金星与天王星逆行自转；星座连线为示意。教学辅助默认关闭，开启后显示自转标记与轴线。</p>
             <p class="model-note"><a href="https://ssd.jpl.nasa.gov/planets/phys_par.html" target="_blank" rel="noopener noreferrer">NASA/JPL · rotation and orbital data</a></p>
         </div>
@@ -930,15 +931,25 @@
                 const visualScale = isInnerPlanet ? INNER_PLANET_SIZE_MULTIPLIER : 1;
                 const radius = Math.max(1.25, (planet.diameter / 2) * SIZE_SCALE * sizeBoost * visualScale * 3);
                 const geometry = new THREE.SphereGeometry(radius, 48, 48);
-                const surface = makeSurface(planet.id, planet.color);
+                const surface = planet.id === 'earth' ? new THREE.TextureLoader().load('assets/earth-blue-marble-200407.jpg', undefined, undefined, () => {
+                    const message = document.getElementById('load-status');
+                    message.hidden = false;
+                    message.textContent = 'NASA 地球贴图加载失败，请刷新并确认 assets 目录已发布。';
+                }) : makeSurface(planet.id, planet.color);
+                surface.encoding = THREE.sRGBEncoding;
+                if (planet.id === 'earth') {
+                    surface.userData = {};
+                    surface.generateMipmaps = false;
+                    surface.minFilter = THREE.LinearFilter;
+                }
                 surface.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
                 const rocky = ['mercury', 'venus', 'earth', 'mars'].includes(planet.id);
                 const material = new THREE.MeshStandardMaterial({
                     color: 0xffffff,
                     map: surface,
-                    bumpMap: rocky && planet.id !== 'venus' ? surface.userData.bumpMap : null,
+                    bumpMap: rocky && !['venus','earth'].includes(planet.id) ? surface.userData.bumpMap : null,
                     bumpScale: radius * (planet.id === 'earth' ? .025 : .045),
-                    roughnessMap: surface.userData.roughnessMap,
+                    roughnessMap: surface.userData.roughnessMap || null,
                     roughness: 1,
                     metalness: 0
                 });
@@ -959,8 +970,6 @@
                 marker.visible = false;
                 teachingGuides.push(axis, marker);
                 if (planet.id === 'earth') {
-                    const clouds = new THREE.Mesh(new THREE.SphereGeometry(radius*1.009,64,48),new THREE.MeshStandardMaterial({map: surface.userData.cloudMap, transparent:true, depthWrite:false, roughness:1, metalness:0, opacity:.9}));
-                    mesh.add(clouds);
                     const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(radius*1.025,64,48), new THREE.ShaderMaterial({
                         transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
                         vertexShader:`varying vec3 worldNormal; varying vec3 worldPoint;
