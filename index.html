@@ -566,9 +566,13 @@
             <div class="control">
                 <button class="btn" id="toggle">暂停</button>
             </div>
+            <div class="control">
+                <label for="toggle-guides">教学辅助 · 自转标记与轴线</label>
+                <label class="switch"><input type="checkbox" id="toggle-guides"><span class="slider"></span></label>
+            </div>
             <div id="elapsed">0.0 simulated days</div>
             <p class="model-note">教学示意：圆形共面轨道，距离压缩，行星与月球放大。纹理为艺术示意，初始位置不代表今日星空。高速自转可能产生视觉混叠。</p>
-            <p class="model-note">从黄道北侧俯视，八大行星均逆时针公转。金星与天王星逆行自转；星座连线为示意。白色表面标记与轴线用于观察自转。</p>
+            <p class="model-note">从黄道北侧俯视，八大行星均逆时针公转。金星与天王星逆行自转；星座连线为示意。教学辅助默认关闭，开启后显示自转标记与轴线。</p>
             <p class="model-note"><a href="https://ssd.jpl.nasa.gov/planets/phys_par.html" target="_blank" rel="noopener noreferrer">NASA/JPL · rotation and orbital data</a></p>
         </div>
 
@@ -777,13 +781,13 @@
         controls.minDistance = 1;
         controls.maxDistance = 600;
 
-        const ambient = new THREE.AmbientLight(0x223355, 0.3);
+        const ambient = new THREE.AmbientLight(0x8193ab, 0.16);
         scene.add(ambient);
 
-        const hemisphere = new THREE.HemisphereLight(0x2c4d7a, 0x07080d, 0.35);
+        const hemisphere = new THREE.HemisphereLight(0x93aac4, 0x10151e, 0.13);
         scene.add(hemisphere);
 
-        const sunLight = new THREE.PointLight(0xffffff, 3, 900);
+        const sunLight = new THREE.PointLight(0xfff4e5, 2.1, 0, 0);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.set(2048, 2048);
         sunLight.shadow.bias = -0.0003;
@@ -842,13 +846,10 @@
         function createSun() {
             const sunRadius = 696340 * SIZE_SCALE;
             const geometry = new THREE.SphereGeometry(sunRadius, 64, 64);
-            const material = new THREE.MeshStandardMaterial({
+            const material = new THREE.MeshBasicMaterial({
                 color: 0xffffff,
                 map: makeSurface('sun', 0xffb638),
-                emissive: 0xff8a1d,
-                emissiveIntensity: 0.55,
-                roughness: 0.4,
-                metalness: 0.1
+                toneMapped: false
             });
 
             const sun = new THREE.Mesh(geometry, material);
@@ -858,32 +859,8 @@
             sunLight.position.copy(sun.position);
             scene.add(sun);
 
-            const glowGeometry = new THREE.SphereGeometry(sunRadius * 1.15, 64, 64);
-            const glowMaterial = new THREE.ShaderMaterial({
-                uniforms: {
-                    color: { value: new THREE.Color(0xffa63b) }
-                },
-                vertexShader: `
-                    varying vec3 vNormal;
-                    void main() {
-                        vNormal = normalize(normalMatrix * normal);
-                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                    }
-                `,
-                fragmentShader: `
-                    uniform vec3 color;
-                    varying vec3 vNormal;
-                    void main() {
-                        float intensity = pow(max(0.0, 0.8 - dot(vNormal, vec3(0.0, 0.0, 1.0))), 3.0);
-                        gl_FragColor = vec4(color, intensity * 0.8);
-                    }
-                `,
-                blending: THREE.AdditiveBlending,
-                transparent: true,
-                side: THREE.BackSide
-            });
-
-            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            const glow = new THREE.Sprite(new THREE.SpriteMaterial({map: makeCoronaTexture(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false}));
+            glow.scale.set(sunRadius*4, sunRadius*4, 1);
             sun.add(glow);
         }
 
@@ -891,6 +868,7 @@
         const planetPickTargets = [];
         const constellationPickTargets = [];
         const orbitGroups = [];
+        const teachingGuides = [];
         const focusOptions = document.getElementById("focus");
 
         function toScaledDistance(distanceMillions) {
@@ -929,11 +907,17 @@
                 const visualScale = isInnerPlanet ? INNER_PLANET_SIZE_MULTIPLIER : 1;
                 const radius = Math.max(1.25, (planet.diameter / 2) * SIZE_SCALE * sizeBoost * visualScale * 3);
                 const geometry = new THREE.SphereGeometry(radius, 48, 48);
+                const surface = makeSurface(planet.id, planet.color);
+                surface.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+                const rocky = ['mercury', 'venus', 'earth', 'mars'].includes(planet.id);
                 const material = new THREE.MeshStandardMaterial({
                     color: 0xffffff,
-                    map: makeSurface(planet.id, planet.color),
-                    roughness: 0.65,
-                    metalness: 0.1
+                    map: surface,
+                    bumpMap: rocky && planet.id !== 'venus' ? surface.userData.bumpMap : null,
+                    bumpScale: radius * (planet.id === 'earth' ? .025 : .045),
+                    roughnessMap: surface.userData.roughnessMap,
+                    roughness: 1,
+                    metalness: 0
                 });
 
                 const mesh = new THREE.Mesh(geometry, material);
@@ -945,9 +929,24 @@
                     new THREE.Vector3(0, -radius * 1.7, 0), new THREE.Vector3(0, radius * 1.7, 0)
                 ]), new THREE.LineBasicMaterial({color: 0xbcd4e2, transparent: true, opacity: 0.45}));
                 tiltGroup.add(axis);
+                axis.visible = false;
                 const marker = new THREE.Mesh(new THREE.SphereGeometry(radius * 0.065, 12, 8), new THREE.MeshBasicMaterial({color: 0xffffff}));
                 marker.position.set(radius * 1.01, 0, 0);
                 mesh.add(marker);
+                marker.visible = false;
+                teachingGuides.push(axis, marker);
+                if (planet.id === 'earth') {
+                    const clouds = new THREE.Mesh(new THREE.SphereGeometry(radius*1.009,64,48),new THREE.MeshStandardMaterial({map: surface.userData.cloudMap, transparent:true, depthWrite:false, roughness:1, metalness:0, opacity:.9}));
+                    mesh.add(clouds);
+                    const atmosphere = new THREE.Mesh(new THREE.SphereGeometry(radius*1.025,64,48), new THREE.ShaderMaterial({
+                        transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+                        vertexShader:`varying vec3 worldNormal; varying vec3 worldPoint;
+                            void main(){vec4 p=modelMatrix*vec4(position,1.0);worldPoint=p.xyz;worldNormal=normalize(mat3(modelMatrix)*normal);gl_Position=projectionMatrix*viewMatrix*p;}`,
+                        fragmentShader:`varying vec3 worldNormal; varying vec3 worldPoint;
+                            void main(){vec3 n=normalize(worldNormal);vec3 eye=normalize(cameraPosition-worldPoint);float rim=pow(1.0-max(0.0,dot(n,eye)),3.0);float day=smoothstep(-0.2,0.6,dot(n,normalize(-worldPoint)));gl_FragColor=vec4(0.20,0.48,0.86,rim*day*0.45);}`
+                    }));
+                    mesh.add(atmosphere);
+                }
                 planetMeshes.push(mesh);
                 planetPickTargets.push(mesh);
 
@@ -967,12 +966,19 @@
 
                 if (planet.id === "saturn") {
                     const ringGeometry = new THREE.RingGeometry(radius * 1.4, radius * 2.4, 128);
+                    const ringPositions = ringGeometry.attributes.position;
+                    for (let i=0; i<ringPositions.count; i++) {
+                        const radial = Math.hypot(ringPositions.getX(i),ringPositions.getY(i));
+                        ringGeometry.attributes.uv.setXY(i,(radial-radius*1.4)/radius,.5);
+                    }
                     const ringMaterial = new THREE.MeshStandardMaterial({
-                        color: 0xd7c4a3,
-                        roughness: 0.7,
+                        color: 0xffffff,
+                        map: makeRingTexture(),
+                        roughness: 1,
                         metalness: 0.0,
                         transparent: true,
-                        opacity: 0.75,
+                        opacity: 0.92,
+                        depthWrite: false,
                         side: THREE.DoubleSide
                     });
                     const ring = new THREE.Mesh(ringGeometry, ringMaterial);
@@ -990,11 +996,14 @@
 
                     const moonRadius = (moonData.diameter / 2) * SIZE_SCALE * 1.4 * visualScale;
                     const moonGeometry = new THREE.SphereGeometry(moonRadius, 32, 32);
+                    const moonSurface = makeSurface('moon', moonData.color);
                     const moonMaterial = new THREE.MeshStandardMaterial({
                         color: 0xffffff,
-                        map: makeSurface('moon', moonData.color),
-                        roughness: 0.8,
-                        metalness: 0.05
+                        map: moonSurface,
+                        bumpMap: moonSurface.userData.bumpMap,
+                        bumpScale: moonRadius*.055,
+                        roughness: 1,
+                        metalness: 0
                     });
                     const moonMesh = new THREE.Mesh(moonGeometry, moonMaterial);
                     moonMesh.userData = {
@@ -1537,6 +1546,9 @@
         document.getElementById('north-view').addEventListener('click', () => {
             document.getElementById('reset-view').click();
             camera.position.set(0, 340, 0.01); controls.update();
+        });
+        document.getElementById('toggle-guides').addEventListener('change', event => {
+            teachingGuides.forEach(guide => { guide.visible = event.target.checked; });
         });
         if (controlsPanelIsMobileUi()) { setControlsPanelVisible(false); document.getElementById('panel-toggle').setAttribute('aria-expanded', 'false'); }
         animate();

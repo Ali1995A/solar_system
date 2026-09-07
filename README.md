@@ -14,7 +14,7 @@ A static interactive 3D solar system built with Three.js and vanilla JavaScript.
 - Starfield background and subtle fog
 - Responsive layout optimized for desktop and iPhone/iPad
 - Procedural illustrative surfaces: terrestrial planets, gas bands, Jupiter storm, solar granulation-like detail
-- Chinese observation controls, ten-body dock, north-side view, rotation markers and axial lines
+- Chinese observation controls, ten-body dock, north-side view, optional rotation markers and axial lines (off by default)
 - Sidereal rotation periods and unified Earth-days-per-second simulation, independent of frame rate
 
 ## Run
@@ -41,3 +41,11 @@ Rotation periods use [NASA/JPL planetary physical parameters](https://ssd.jpl.na
 ## Verification and status
 
 Run `node tests/check.cjs`. Checks cover syntax, DOM references, direction, rates, frame independence, pause/background time, lunar hierarchy/period and Saturn's ring plane. Browser visual acceptance is pending: the available browser rejected local-file preview by policy. No online deployment was performed. See `docs/upgrade-20260907.md` and `AGENTS.md` for handoff.
+
+## Material refinement (2026-09-07)
+
+The persistent white surface dot was a teaching marker, not a city, specular glint, or astronomical feature. It and the axial guides are now off by default; enable them with the teaching-aids switch.
+
+Earth has separate transparent clouds, sun-facing atmospheric rim, land relief and ocean/land roughness. Rock bodies use relief maps and softened crater rims. Gas bands use lower contrast and mottling; Jupiter's storm fades into the cloud bands. Saturn has radial ring texture with a visible gap. The Sun uses an unlit granular surface and soft corona, avoiding a metallic-looking surface illuminated from its own center. These remain artistic illustrations.
+
+`tests/surfaces.cjs` uses the existing bundled `@napi-rs/canvas` (resolve via NODE_PATH) to test all ten texture generators, map dimensions/variation, cloud alpha, ring gap and corona center. An optional output-path argument writes a CPU material preview; this is not WebGL rendering or browser interaction validation. Do not install packages to run it.

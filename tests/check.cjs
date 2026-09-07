@@ -37,4 +37,6 @@ assert.equal(simulate(2,1,false,true).elapsed,0,'hidden page freezes time');
 assert(Math.abs(one.groups[2].group.userData.moonOrbit.rotation.y-2*Math.PI/27.3)<1e-10,'Moon period');
 assert(main.includes('pivot.add(moonOrbit)') && !main.includes('mesh.add(moonOrbit)'), 'Moon independent of Earth spin');
 assert(main.includes('ring.rotation.x = Math.PI / 2;'), 'Saturn rings in equatorial plane');
+assert(main.includes('marker.visible = false') && main.includes('axis.visible = false'), 'teaching markers hidden by default');
+assert(!/<input[^>]+id="toggle-guides"[^>]*checked/.test(html),'guide checkbox defaults off');
 console.log('PASS: script syntax, DOM references, 8-planet direction/rotation rates, frame independence, pause/hidden time, Moon period and hierarchy, Saturn ring plane. Browser rendering not tested.');
