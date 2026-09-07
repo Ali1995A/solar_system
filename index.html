@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solar System Explorer</title>
+    <title>太阳系观测台 · Solar System Explorer</title>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-WDYTYY158T"></script>
     <script>
@@ -84,6 +84,7 @@
         }
 
         .panel.is-hidden {
+            visibility: hidden;
             opacity: 0;
             pointer-events: none;
         }
@@ -470,36 +471,90 @@
                 bottom: 18px;
             }
         }
+        :focus-visible { outline: 2px solid #ffd590; outline-offset: 4px; }
+        .title { font-size: clamp(16px, 3vw, 28px); letter-spacing: 3px; }
+        .panel { max-height: calc(100dvh - 180px); overflow-y: auto; }
+        .model-note { font-size: 11px; line-height: 1.6; color: #acbdd5; margin-top: 12px; }
+        .model-note a { color: #9fd1ff; }
+        .toolbar { position: fixed; top: 65px; right: 20px; display: flex; gap: 8px; z-index: 8; }
+        .toolbar .btn { width: auto; background: #15253e; }
+        #elapsed { color: #ffd590; font-size: 12px; margin: 12px 0; font-variant-numeric: tabular-nums; }
+        #load-status { position: fixed; top: 42%; left: 10%; right: 10%; text-align: center; color: #ffd590; z-index: 20; }
+        .info { max-height: calc(100dvh - 180px); overflow-y: auto; z-index: 9; }
+        .hint { max-width: 92vw; white-space: normal; text-align: center; }
+        @media (max-width: 768px) {
+            .panel { bottom: 58px; max-height: 45dvh; }
+            .info { top: 105px; max-height: 55dvh; background: #0c1628; }
+            .toolbar { top: 52px; right: 16px; }
+        }
+        @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+        :root { --accent: #e8bd7a; --text: #f2eee5; --muted: #a6b1bd; --panel: rgba(14, 22, 31, .91); }
+        body { font-family: 'Microsoft YaHei UI', 'Segoe UI', sans-serif; }
+        .title { left: 30px; top: 24px; transform: none; text-align: left; color: #f4efe2; font-family: Georgia, 'Microsoft YaHei', serif; text-transform: none; font-size: 29px; letter-spacing: 2px; text-shadow: none; }
+        .title small { display: block; font: 9px Consolas, monospace; color: #e8bd7a; letter-spacing: 3px; margin-bottom: 9px; }
+        .title span { display: block; font: 11px Georgia, serif; color: #a6b1bd; letter-spacing: 2px; margin-top: 8px; }
+        .panel { top: 132px; left: 30px; width: 270px; padding: 22px; border-radius: 4px; border: 1px solid #34404a; border-top: 2px solid #b89258; max-height: calc(100dvh - 250px); }
+        .panel h3 { color: #e8bd7a; font-size: 10px; line-height: 1.8; }
+        .btn, .step-btn, .select, .speed-number { border-radius: 4px; border-color: #45505a; background: #1a2530; color: #ece7db; }
+        .btn:hover, .step-btn:hover { box-shadow: none; border-color: #c7a46e; }
+        .toolbar { top: 32px; right: 30px; }
+        .toolbar .btn { background: rgba(20,29,39,.9); }
+        .speed { min-width: 72px; font-family: Consolas, monospace; color: #e8bd7a; }
+        .info { right: 30px; padding: 28px; border-radius: 4px; border: 1px solid #45505a; background: rgba(14,22,31,.96); }
+        .info h2 { color: #e8bd7a; font-family: Georgia, serif; }
+        .info-item { gap: 16px; line-height: 1.7; border-bottom: 1px solid #26333f; padding-bottom: 8px; }
+        .info-item span:last-child { text-align: right; }
+        #planet-dock { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; padding: 8px; background: rgba(14,22,31,.9); border: 1px solid #34404a; max-width: calc(100vw - 32px); overflow-x: auto; border-radius: 8px; }
+        .planet-chip { min-width: 65px; padding: 10px 7px; border: 1px solid transparent; background: none; color: #c8d0d8; cursor: pointer; border-radius: 4px; font: 11px 'Microsoft YaHei UI', sans-serif; }
+        .planet-chip i { display: block; width: 15px; height: 15px; border-radius: 50%; margin: 0 auto 8px; background: var(--planet-color); box-shadow: inset -4px -2px 5px #0008; }
+        .planet-chip:hover, .planet-chip[aria-pressed='true'] { border-color: #a68655; background: #b8925815; color: #ffe0ad; }
+        .hint { bottom: 18px; font-size: 10px; }
+        @media (max-width: 1000px) { .title { font-size: 22px; } .toolbar { top: 28px; right: 16px; } }
+        @media (max-width: 768px) {
+            .title { left: 18px; top: 18px; font-size: 21px; } .title span { display: none; } .title small { font-size: 8px; letter-spacing: 1px; }
+            .toolbar { top: 85px; left: 18px; right: auto; }
+            .toolbar .btn { padding: 9px; font-size: 10px; }
+            .panel { top: 135px; bottom: auto; left: 18px; right: 18px; width: auto; max-height: calc(100dvh - 265px); padding: 16px; }
+            .info { top: 135px; right: 18px; left: 18px; max-height: calc(100dvh - 270px); transform: none; padding: 22px; }
+            #planet-dock { bottom: 40px; width: calc(100vw - 32px); justify-content: flex-start; } .planet-chip { min-width: 55px; }
+            .hint { bottom: 12px; font-size: 9px; }
+        }
     </style>
 </head>
 <body>
     <div id="scene"></div>
+    <p id="load-status" role="status">Loading the solar system…</p>
 
     <div class="overlay">
-        <div class="title">Solar System Explorer</div>
+        <div class="title"><small>ORBITAL OBSERVATORY / 01</small>太阳系观测台<span>Solar System Explorer</span></div>
 
-        <div class="panel">
-            <h3>Controls</h3>
+        <div class="toolbar">
+            <button class="btn" id="reset-view" type="button">全景</button>
+            <button class="btn" id="north-view" type="button">北侧俯视</button>
+            <button class="btn" id="panel-toggle" type="button" aria-controls="controls-panel" aria-expanded="true">控制面板</button>
+        </div>
+        <div class="panel" id="controls-panel">
+            <h3>时间与观测 · MISSION CONTROL</h3>
             <div class="control">
-                <label>Simulation Speed</label>
+                <label for="speed">模拟速度 · 地球日 / 秒</label>
                 <div class="speed-grid">
                     <input id="speed" type="range" min="0" max="1000" step="1" value="333">
                     <div class="speed" id="speedValue">1.0x</div>
                 </div>
                 <div class="speed-tools">
                     <button class="step-btn" id="speedMinus" type="button" title="- (Shift: +/-1, Alt: +/-10)">-</button>
-                    <input id="speedNumber" class="speed-number" type="number" min="0.1" max="100" step="0.1" value="1.0">
+                    <input id="speedNumber" aria-label="Earth days per second" class="speed-number" type="number" min="0.1" max="100" step="0.1" value="1.0">
                     <button class="step-btn" id="speedPlus" type="button" title="+ (Shift: +/-1, Alt: +/-10)">+</button>
                 </div>
             </div>
             <div class="control">
-                <label>Focus Planet</label>
+                <label for="focus">跟随天体</label>
                 <select id="focus" class="select">
-                    <option value="">Free Camera</option>
+                    <option value="">自由视角</option>
                 </select>
             </div>
             <div class="control">
-                <label>Constellation Lines</label>
+                <label for="toggle-constellations">星座连线 · 示意</label>
                 <div class="toggle-row">
                     <span style="font-size: 10px; color: var(--muted); letter-spacing: 1px;">Zodiac</span>
                     <label class="switch">
@@ -509,17 +564,22 @@
                 </div>
             </div>
             <div class="control">
-                <button class="btn" id="toggle">Pause</button>
+                <button class="btn" id="toggle">暂停</button>
             </div>
+            <div id="elapsed">0.0 simulated days</div>
+            <p class="model-note">教学示意：圆形共面轨道，距离压缩，行星与月球放大。纹理为艺术示意，初始位置不代表今日星空。高速自转可能产生视觉混叠。</p>
+            <p class="model-note">从黄道北侧俯视，八大行星均逆时针公转。金星与天王星逆行自转；星座连线为示意。白色表面标记与轴线用于观察自转。</p>
+            <p class="model-note"><a href="https://ssd.jpl.nasa.gov/planets/phys_par.html" target="_blank" rel="noopener noreferrer">NASA/JPL · rotation and orbital data</a></p>
         </div>
 
         <div class="info" id="info">
-            <button class="close" id="close">×</button>
+            <button class="close" id="close" aria-label="Close planet information">×</button>
             <h2 id="infoName">Planet</h2>
             <div class="info-item"><span>Diameter</span><span id="infoDiameter">-</span></div>
-            <div class="info-item"><span>Distance</span><span id="infoDistance">-</span></div>
+            <div class="info-item"><span id="distanceLabel">Mean from Sun</span><span id="infoDistance">-</span></div>
             <div class="info-item"><span>Orbital Period</span><span id="infoOrbit">-</span></div>
-            <div class="info-item"><span>Day Length</span><span id="infoDay">-</span></div>
+            <div class="info-item"><span>Sidereal rotation</span><span id="infoDay">-</span></div>
+            <div class="info-item"><span>自转方向 / 轴倾角</span><span id="infoSpin">-</span></div>
             <div class="fact" id="infoFact">-</div>
         </div>
 
@@ -528,11 +588,13 @@
             <p id="tooltipFact">Fact</p>
         </div>
 
-        <div class="hint">Click a planet to learn more</div>
+        <nav id="planet-dock" aria-label="选择天体"></nav>
+        <div class="hint">拖动环绕 · 滚轮缩放 · 空格暂停 · Esc 关闭详情</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="surfaces.js"></script>
     <script>
         const planetData = [
             {
@@ -634,13 +696,31 @@
             color: 0xc7c7c7
         };
 
+        // Magnitudes only: Venus/Uranus retrograde direction is represented by axial tilt > 90°.
+        const rotationDays = [58.6462, 243.018, 0.99726968, 1.02595676, 0.41354, 0.44401, 0.71833, 0.67125];
+        planetData.forEach((planet, index) => {
+            planet.rotationDays = rotationDays[index];
+            planet.dayLength = `${rotationDays[index].toLocaleString('en', { maximumFractionDigits: 3 })} Earth days`;
+        });
+        const DAYS_PER_SECOND = 1;
+        let elapsedDays = 0;
+        if (!window.THREE || !THREE.OrbitControls) {
+            document.getElementById('load-status').textContent = '3D library could not load. Check your connection and reload.';
+            throw new Error('Three.js or OrbitControls unavailable');
+        }
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x03050b, 0.0009);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
-        camera.position.set(120, 80, 160);
+        camera.position.set(120, 160, 260);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        let renderer;
+        try {
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+        } catch (error) {
+            document.getElementById('load-status').textContent = 'WebGL is unavailable. Enable hardware acceleration or try another browser.';
+            throw error;
+        }
         const isTouchDevice = window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
         const isMobile = window.matchMedia("(max-width: 600px)").matches;
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -659,6 +739,7 @@
             if (!controlsPanel) return;
             controlsPanelVisible = visible;
             controlsPanel.classList.toggle("is-hidden", !visible);
+            document.getElementById('panel-toggle').setAttribute('aria-expanded', String(visible));
         };
         const clearControlsPanelHideTimer = () => {
             if (controlsPanelHideTimer) {
@@ -668,10 +749,6 @@
         };
         const scheduleControlsPanelHide = (delayMs = 2200) => {
             clearControlsPanelHideTimer();
-            if (!controlsPanelIsMobileUi() || !controlsPanelVisible) return;
-            controlsPanelHideTimer = setTimeout(() => {
-                setControlsPanelVisible(false);
-            }, delayMs);
         };
         const keepControlsPanelVisibleBriefly = (autoHideDelayMs = 4000) => {
             if (!controlsPanelIsMobileUi()) return;
@@ -697,7 +774,7 @@
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.minDistance = 30;
+        controls.minDistance = 1;
         controls.maxDistance = 600;
 
         const ambient = new THREE.AmbientLight(0x223355, 0.3);
@@ -714,7 +791,6 @@
 
         const SIZE_SCALE = 0.000015;
         const DIST_SCALE = 45;
-        const BASE_ORBIT_SPEED = 0.45;
         const INNER_PLANET_SIZE_MULTIPLIER = 3;
 
         function createStarfield() {
@@ -767,14 +843,18 @@
             const sunRadius = 696340 * SIZE_SCALE;
             const geometry = new THREE.SphereGeometry(sunRadius, 64, 64);
             const material = new THREE.MeshStandardMaterial({
-                color: 0xffc84a,
+                color: 0xffffff,
+                map: makeSurface('sun', 0xffb638),
                 emissive: 0xff8a1d,
-                emissiveIntensity: 1.2,
+                emissiveIntensity: 0.55,
                 roughness: 0.4,
                 metalness: 0.1
             });
 
             const sun = new THREE.Mesh(geometry, material);
+            sun.userData = { id: 'sun', name: 'Sun', diameter: 1392680, distance: 'Solar system center', orbitalPeriod: null, dayLength: 'Differential rotation', fact: '太阳是本模型中唯一的恒星。它由等离子体组成，不同纬度的自转速度不同。表面与日冕为艺术示意。', radius: sunRadius };
+            planetMeshes.push(sun);
+            planetPickTargets.push(sun);
             sunLight.position.copy(sun.position);
             scene.add(sun);
 
@@ -794,7 +874,7 @@
                     uniform vec3 color;
                     varying vec3 vNormal;
                     void main() {
-                        float intensity = pow(0.8 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 3.0);
+                        float intensity = pow(max(0.0, 0.8 - dot(vNormal, vec3(0.0, 0.0, 1.0))), 3.0);
                         gl_FragColor = vec4(color, intensity * 0.8);
                     }
                 `,
@@ -822,7 +902,7 @@
                 const orbitGroup = new THREE.Group();
                 orbitGroup.userData = {
                     angle: Math.random() * Math.PI * 2,
-                    speed: BASE_ORBIT_SPEED / planet.orbitalPeriod
+                    speed: Math.PI * 2 / planet.orbitalPeriod
                 };
 
                 const distance = toScaledDistance(planet.distance);
@@ -838,7 +918,7 @@
                 scene.add(orbitRing);
 
                 const pivot = new THREE.Group();
-                pivot.position.x = distance;
+                pivot.position.set(Math.cos(orbitGroup.userData.angle) * distance, 0, -Math.sin(orbitGroup.userData.angle) * distance);
                 orbitGroup.add(pivot);
                 const tiltGroup = new THREE.Group();
                 tiltGroup.rotation.z = THREE.MathUtils.degToRad(planet.tilt);
@@ -847,10 +927,11 @@
                 const isInnerPlanet = ["mercury", "venus", "earth", "mars"].includes(planet.id);
                 const sizeBoost = isInnerPlanet ? (isMobile ? 1.65 : 1.45) : 1;
                 const visualScale = isInnerPlanet ? INNER_PLANET_SIZE_MULTIPLIER : 1;
-                const radius = (planet.diameter / 2) * SIZE_SCALE * sizeBoost * visualScale;
+                const radius = Math.max(1.25, (planet.diameter / 2) * SIZE_SCALE * sizeBoost * visualScale * 3);
                 const geometry = new THREE.SphereGeometry(radius, 48, 48);
                 const material = new THREE.MeshStandardMaterial({
-                    color: planet.color,
+                    color: 0xffffff,
+                    map: makeSurface(planet.id, planet.color),
                     roughness: 0.65,
                     metalness: 0.1
                 });
@@ -860,6 +941,13 @@
                 mesh.receiveShadow = true;
                 mesh.userData = { ...planet, radius };
                 tiltGroup.add(mesh);
+                const axis = new THREE.Line(new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(0, -radius * 1.7, 0), new THREE.Vector3(0, radius * 1.7, 0)
+                ]), new THREE.LineBasicMaterial({color: 0xbcd4e2, transparent: true, opacity: 0.45}));
+                tiltGroup.add(axis);
+                const marker = new THREE.Mesh(new THREE.SphereGeometry(radius * 0.065, 12, 8), new THREE.MeshBasicMaterial({color: 0xffffff}));
+                marker.position.set(radius * 1.01, 0, 0);
+                mesh.add(marker);
                 planetMeshes.push(mesh);
                 planetPickTargets.push(mesh);
 
@@ -888,7 +976,7 @@
                         side: THREE.DoubleSide
                     });
                     const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-                    ring.rotation.x = Math.PI / 2.2;
+                    ring.rotation.x = Math.PI / 2;
                     mesh.add(ring);
                 }
 
@@ -903,12 +991,14 @@
                     const moonRadius = (moonData.diameter / 2) * SIZE_SCALE * 1.4 * visualScale;
                     const moonGeometry = new THREE.SphereGeometry(moonRadius, 32, 32);
                     const moonMaterial = new THREE.MeshStandardMaterial({
-                        color: moonData.color,
+                        color: 0xffffff,
+                        map: makeSurface('moon', moonData.color),
                         roughness: 0.8,
                         metalness: 0.05
                     });
                     const moonMesh = new THREE.Mesh(moonGeometry, moonMaterial);
                     moonMesh.userData = {
+                        id: 'moon',
                         name: moonData.name,
                         diameter: moonData.diameter,
                         distance: "384,400 km",
@@ -920,7 +1010,7 @@
                     moonMesh.castShadow = true;
                     moonMesh.receiveShadow = true;
                     moonPivot.add(moonMesh);
-                    mesh.add(moonOrbit);
+                    pivot.add(moonOrbit);
                     orbitGroup.userData.moonOrbit = moonOrbit;
                     planetMeshes.push(moonMesh);
                     planetPickTargets.push(moonMesh);
@@ -1144,12 +1234,14 @@
 
         function showInfo(data) {
             document.getElementById("infoName").textContent = data.name;
+            document.getElementById('infoSpin').textContent = Number.isFinite(data.tilt) ? `${data.tilt > 90 ? '逆行' : '顺行'} · ${data.tilt}°` : (data.id === 'moon' ? '同步自转 · 顺行' : '较差自转 · 纹理静态示意');
             document.getElementById("infoDiameter").textContent = `${data.diameter.toLocaleString()} km`;
             const distance = typeof data.distance === "number"
                 ? `${data.distance.toLocaleString()} million km`
                 : data.distance;
             document.getElementById("infoDistance").textContent = distance;
-            document.getElementById("infoOrbit").textContent = `${data.orbitalPeriod} Earth days`;
+            document.getElementById('distanceLabel').textContent = data.name === 'Moon' ? 'From Earth' : 'Mean from Sun';
+            document.getElementById("infoOrbit").textContent = data.orbitalPeriod ? `${data.orbitalPeriod} Earth days` : '—';
             document.getElementById("infoDay").textContent = data.dayLength;
             document.getElementById("infoFact").textContent = data.fact;
             info.classList.add("active");
@@ -1249,30 +1341,12 @@
             return Math.round(Math.min(1, Math.max(0, t)) * SPEED_SLIDER_STEPS);
         };
         const formatSpeed = value => (value >= 10 ? value.toFixed(1) : value.toFixed(2));
-        const environmentSpeedCap = (() => {
-            const cores = navigator.hardwareConcurrency || 4;
-            const memory = navigator.deviceMemory || 4;
-            let cap = SPEED_UI_MAX;
-
-            if (cores <= 2 || memory <= 2) cap = 35;
-            else if (cores <= 4 || memory <= 4) cap = 60;
-            else if (cores <= 6 || memory <= 6) cap = 80;
-
-            if (isTouchDevice) cap = Math.min(cap, 80);
-            return cap;
-        })();
-
-        let performanceSpeedMultiplier = 1;
-        let smoothedDelta = 1 / 60;
-        const targetDelta = isTouchDevice ? 1 / 45 : 1 / 60;
-
         const getAppliedSpeed = () => {
-            const capped = Math.min(speedRequested, environmentSpeedCap);
-            return capped * performanceSpeedMultiplier;
+            return speedRequested;
         };
 
         const updateSpeedLabel = () => {
-            speedValue.textContent = `${formatSpeed(speedRequested)}x`;
+            speedValue.textContent = `${formatSpeed(speedRequested)} d/s`;
         };
 
         const setRequestedSpeed = (next, { syncSlider = true, syncNumber = true } = {}) => {
@@ -1321,7 +1395,7 @@
 
         document.getElementById("toggle").addEventListener("click", event => {
             isPaused = !isPaused;
-            event.target.textContent = isPaused ? "Play" : "Pause";
+            event.target.textContent = isPaused ? "继续" : "暂停";
             scheduleControlsPanelHide(1800);
         });
 
@@ -1342,43 +1416,45 @@
 
         const clock = new THREE.Clock();
 
+        let previousFocusPosition = null;
+        let activeFocusId = '';
         function updateFocus() {
             if (!focusTarget) return;
             const targetPlanet = planetMeshes.find(mesh => mesh.userData.id === focusTarget);
             if (!targetPlanet) return;
             const targetPosition = new THREE.Vector3();
             targetPlanet.getWorldPosition(targetPosition);
-            const distance = targetPlanet.userData.radius * 8;
-            const desired = targetPosition.clone().add(new THREE.Vector3(distance, distance * 0.6, distance));
-            camera.position.lerp(desired, 0.04);
-            controls.target.lerp(targetPosition, 0.08);
+            if (activeFocusId !== focusTarget) {
+                const distance = Math.max(2, targetPlanet.userData.radius * 8);
+                camera.position.copy(targetPosition).add(new THREE.Vector3(distance, distance * 0.6, distance));
+                activeFocusId = focusTarget;
+            } else if (previousFocusPosition) {
+                camera.position.add(targetPosition.clone().sub(previousFocusPosition));
+            }
+            controls.target.copy(targetPosition);
+            previousFocusPosition = targetPosition.clone();
         }
 
         function animate() {
             requestAnimationFrame(animate);
             const rawDelta = clock.getDelta();
-            const delta = Math.min(rawDelta, 0.05);
-
-            smoothedDelta = smoothedDelta * 0.92 + rawDelta * 0.08;
-            if (smoothedDelta > targetDelta * 1.2) {
-                performanceSpeedMultiplier = Math.max(0.12, performanceSpeedMultiplier * 0.97);
-            } else if (smoothedDelta < targetDelta * 0.92) {
-                performanceSpeedMultiplier = Math.min(1, performanceSpeedMultiplier * 1.01);
-            }
+            const delta = document.hidden ? 0 : rawDelta;
 
             const speed = getAppliedSpeed();
 
             if (!isPaused) {
+                elapsedDays += delta * speed * DAYS_PER_SECOND;
+                document.getElementById('elapsed').textContent = `${elapsedDays.toFixed(1)} simulated days`;
                 orbitGroups.forEach(entry => {
-                    entry.group.userData.angle += entry.group.userData.speed * delta * speed * 50;
+                    entry.group.userData.angle += entry.group.userData.speed * delta * speed * DAYS_PER_SECOND;
                     const angle = entry.group.userData.angle;
                     entry.pivot.position.x = Math.cos(angle) * entry.distance;
-                    entry.pivot.position.z = Math.sin(angle) * entry.distance;
-                    entry.mesh.rotation.y += (delta * speed) / 2;
+                    entry.pivot.position.z = -Math.sin(angle) * entry.distance;
+                    entry.mesh.rotation.y += Math.PI * 2 * delta * speed * DAYS_PER_SECOND / entry.mesh.userData.rotationDays;
 
                     if (entry.group.userData.moonOrbit) {
                         const moonOrbit = entry.group.userData.moonOrbit;
-                        moonOrbit.userData.angle += delta * speed * 1.5;
+                        moonOrbit.userData.angle += Math.PI * 2 * delta * speed * DAYS_PER_SECOND / moonData.orbitalPeriod;
                         moonOrbit.rotation.y = moonOrbit.userData.angle;
                     }
                 });
@@ -1401,6 +1477,68 @@
             }
         });
 
+        document.addEventListener('visibilitychange', () => clock.getDelta());
+        focusOptions.addEventListener('change', () => {
+            activeFocusId = '';
+            previousFocusPosition = null;
+            const selected = planetMeshes.find(item => item.userData.id === focusTarget);
+            if (selected) showInfo(selected.userData);
+            document.querySelectorAll('.planet-chip').forEach(chip => chip.setAttribute('aria-pressed', String(chip.dataset.body === focusTarget)));
+        });
+        document.getElementById('reset-view').addEventListener('click', () => {
+            focusTarget = '';
+            focusOptions.value = '';
+            activeFocusId = '';
+            previousFocusPosition = null;
+            camera.position.set(120, 160, 260);
+            controls.target.set(0, 0, 0);
+            info.classList.remove('active');
+            document.querySelectorAll('.planet-chip').forEach(chip => chip.setAttribute('aria-pressed', 'false'));
+        });
+        document.getElementById('panel-toggle').addEventListener('click', event => {
+            setControlsPanelVisible(!controlsPanelVisible);
+            event.currentTarget.setAttribute('aria-expanded', String(controlsPanelVisible));
+        });
+        window.addEventListener('keydown', event => {
+            if (event.key === 'Escape') { info.classList.remove('active'); tooltip.classList.remove('active', 'force'); return; }
+            if (/INPUT|SELECT|TEXTAREA|BUTTON/.test(document.activeElement.tagName)) return;
+            if (event.code === 'Space') { event.preventDefault(); document.getElementById('toggle').click(); }
+        });
+        renderer.domElement.addEventListener('webglcontextlost', event => {
+            event.preventDefault();
+            document.getElementById('load-status').hidden = false;
+            document.getElementById('load-status').textContent = 'Graphics context lost. Reload to restore the simulation.';
+            isPaused = true;
+        });
+        document.getElementById('load-status').hidden = true;
+        const bodyLabels = { sun: '太阳', mercury: '水星', venus: '金星', earth: '地球', mars: '火星', jupiter: '木星', saturn: '土星', uranus: '天王星', neptune: '海王星', moon: '月球' };
+        for (const option of focusOptions.options) {
+            if (bodyLabels[option.value]) option.textContent = `${bodyLabels[option.value]} · ${option.textContent}`;
+        }
+        for (const mesh of planetMeshes) {
+            const data = mesh.userData;
+            if (!data.id) continue;
+            if (!Array.from(focusOptions.options).some(option => option.value === data.id)) {
+                const option = document.createElement('option'); option.value = data.id; option.textContent = `${bodyLabels[data.id]} · ${data.name}`; focusOptions.appendChild(option);
+            }
+            const button = document.createElement('button');
+            button.className = 'planet-chip'; button.type = 'button'; button.dataset.body = data.id;
+            button.style.setProperty('--planet-color', '#' + (data.color || (data.id === 'sun' ? 0xffbb44 : 0xbac0ca)).toString(16).padStart(6, '0'));
+            button.innerHTML = `<i aria-hidden="true"></i>${bodyLabels[data.id]}`;
+            button.setAttribute('aria-pressed', 'false');
+            button.addEventListener('click', () => {
+                focusOptions.value = data.id; focusOptions.dispatchEvent(new Event('change'));
+                showInfo(data);
+                if (controlsPanelIsMobileUi()) { setControlsPanelVisible(false); document.getElementById('panel-toggle').setAttribute('aria-expanded', 'false'); }
+                document.querySelectorAll('.planet-chip').forEach(chip => chip.setAttribute('aria-pressed', String(chip === button)));
+            });
+            document.getElementById('planet-dock').appendChild(button);
+        }
+        document.getElementById('north-view').addEventListener('click', () => {
+            document.getElementById('reset-view').click();
+            camera.position.set(0, 340, 0.01); controls.update();
+        });
+        if (controlsPanelIsMobileUi()) { setControlsPanelVisible(false); document.getElementById('panel-toggle').setAttribute('aria-expanded', 'false'); }
         animate();
     </script>
 </body>

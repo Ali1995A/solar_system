@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "project_name": "Solar System Explorer",
+  "project_mode": "software_app",
+  "mode_reason": "Existing independent static Three.js application; local science and interface upgrade.",
+  "created_at": "2026-09-07",
+  "created_by": "Codex",
+  "template_source": "Existing README and standalone static application structure",
+  "can_switch_mode": true,
+  "compatible_modes": ["learning_system"],
+  "notes": "Independent Git repository Ali1995A/solar_system, nested under test-demo; this task creates no derived workspace. No dependency installation or deployment performed."
+}
