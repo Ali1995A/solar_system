@@ -932,11 +932,17 @@
                 const radius = Math.max(1.25, (planet.diameter / 2) * SIZE_SCALE * sizeBoost * visualScale * 3);
                 const geometry = new THREE.SphereGeometry(radius, 48, 48);
                 const realTextureFiles = {
+                    // NASA/JPL/Caltech global maps. These are observation-derived
+                    // maps rather than the procedural fallback in surfaces.js.
+                    mercury: 'https://maps.jpl.nasa.gov/tmaps/pix/mer0muu2.jpg',
+                    venus: 'https://maps.jpl.nasa.gov/tmaps/pix/ven0aaa2.jpg',
                     earth: 'assets/earth-blue-marble-200407.jpg',
                     moon: 'assets/moon-lroc-color-1k.jpg',
+                    mars: 'https://maps.jpl.nasa.gov/tmaps/pix/mar0kuu2.jpg',
                     jupiter: 'assets/jupiter-hubble-global-map.jpg'
                 };
                 const textureLoader = new THREE.TextureLoader();
+                textureLoader.crossOrigin = 'anonymous';
                 const realTexturePath = realTextureFiles[planet.id];
                 const surface = realTexturePath ? textureLoader.load(realTexturePath, texture => {
                     texture.encoding = THREE.sRGBEncoding;

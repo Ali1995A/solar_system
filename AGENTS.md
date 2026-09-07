@@ -1,6 +1,6 @@
 # Solar System Explorer handoff
 
-Status (2026-09-07): Earth clouds removed in d3cca2d; Moon and Jupiter now use NASA/LRO and NASA/Hubble observation-based global maps in 5d44f43, checked and pushed to origin/main. Browser visual acceptance remains pending; online deployment status unverified.
+Status (2026-09-07): Earth clouds removed in d3cca2d; Moon and Jupiter use NASA/LRO and NASA/Hubble observation-based global maps, and Mercury/Venus/Mars now use NASA/JPL global maps loaded from official endpoints. This latest rocky-planet texture change is local and not pushed. Browser visual acceptance remains pending; online deployment status unverified.
 
 - Mode: software_app; compatible: learning_system. See project_mode.json.
 - Actual repository: https://github.com/Ali1995A/solar_system.git. test-demo is a containing folder, not the remote for this project. No parent-derived workspace was created; relationship files are not applicable.
@@ -19,3 +19,4 @@ Status (2026-09-07): Earth clouds removed in d3cca2d; Moon and Jupiter now use N
 - Latest follow-up: user requested removal of clouds and realistic Earth imagery. NASA asset decoded at 5400×2700, inspected, and attributed in assets/README.md; no invented Earth bump maps remain. Tests/check.cjs, tests/eclipses.cjs, tests/surfaces.cjs and diff whitespace checks passed. Latest report section supersedes earlier Earth/cloud descriptions.
 - Texture follow-up: user asked whether Moon/Jupiter textures were real. They were procedural; assets/moon-lroc-color-1k.jpg and assets/jupiter-hubble-global-map.jpg now replace them, with NASA SVS attribution. All three image assets decode successfully; test suite rerun after fixing asset checks.
 - Texture push: 5d44f43 (Use NASA observation maps for Moon and Jupiter) pushed successfully without force.
+- Rocky texture follow-up: Mercury, Venus, and Mars now use NASA/JPL global maps in `index.html`; sources and the Venus radar-color caveat are recorded in `assets/README.md`. See `docs/upgrade-20260907-nasa-rocky-textures.md`. `tests/check.cjs` and `tests/eclipses.cjs` passed; `tests/surfaces.cjs` was blocked by the existing missing `@napi-rs/canvas` runtime.

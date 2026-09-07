@@ -25,4 +25,24 @@
 - Original: https://svs.gsfc.nasa.gov/vis/a010000/a012000/a012021/Hubble_Jupiter_color_global_map_2015a_print.jpg
 - Resolution: 1024 × 512.
 
+## Mercury
+
+- Dataset: NASA/JPL Solar System Simulator global Mercury map, based on MESSENGER imagery.
+- Source: https://maps.jpl.nasa.gov/tmaps/mercury.html
+- Runtime source: https://maps.jpl.nasa.gov/tmaps/pix/mer0muu2.jpg
+- The page loads this official map directly so the repository does not duplicate a remote NASA/JPL asset.
+
+## Venus
+
+- Dataset: NASA/JPL Solar System Simulator global Venus map, stitched from Magellan radar imagery.
+- Source: https://maps.jpl.nasa.gov/tmaps/venus.html
+- Runtime source: https://maps.jpl.nasa.gov/tmaps/pix/ven0aaa2.jpg
+- This is radar-derived simulated color; Venus's true visible surface color has not been mapped because its atmosphere is opaque.
+
+## Mars
+
+- Dataset: NASA/JPL Solar System Simulator global Mars map, based on spacecraft imagery.
+- Source: https://maps.jpl.nasa.gov/tmaps/mars.html
+- Runtime source: https://maps.jpl.nasa.gov/tmaps/pix/mar0kuu2.jpg
+
 These are real observation-based global composites, not current live imagery. Their observation dates and map-facing longitudes do not represent the simulated starting state.
