@@ -30,7 +30,7 @@ Open `index.html` in a modern browser with WebGL and network access to the two C
 
 ## Notes
 
-Earth uses the bundled NASA Blue Marble satellite composite in assets/earth-blue-marble-200407.jpg; all other surfaces are generated locally. Publish the assets directory with the three application files. Three.js and OrbitControls still require network access, so this is not an offline bundle.
+Earth, Moon and Jupiter use bundled NASA observation-based global composites in assets/. Other surfaces are generated locally. Publish the assets directory with the three application files. Three.js and OrbitControls still require network access, so this is not an offline bundle.
 
 Planetary orbits are circular and coplanar with illustrative random initial phases; the Moon orbit is tilted approximately 5.145 degrees except during aligned demonstrations. This is not an ephemeris, a scale model, or a map of the current sky. The constellation sketches are not astronomical coordinates. Except for Earth, surface illustrations are not satellite images. The Sun surface is a static illustration and does not simulate differential rotation. High time speeds can cause apparent reversed rotation through temporal aliasing.
 
@@ -46,9 +46,9 @@ Run `node tests/check.cjs`. Checks cover syntax, DOM references, direction, rate
 
 The persistent white surface dot was a teaching marker, not a city, specular glint, or astronomical feature. It and the axial guides are now off by default; enable them with the teaching-aids switch.
 
-Earth now uses NASA's actual cloud-free July 2004 monthly composite, retaining the atmospheric rim and eclipse shadow. The cloud mesh/generator and fictional land/bump/roughness maps were removed. Ice/snow in the satellite image remains visible. Other bodies retain procedural materials, rock relief, softened craters, gas bands, Saturn ring texture and the Sun's granular appearance with soft corona.
+Earth uses NASA's cloud-free July 2004 composite, Moon uses NASA/LRO's WAC color mosaic, and Jupiter uses NASA/Hubble's global color map. Their fictional procedural surface maps are disabled. Other bodies retain procedural materials, rock relief, softened craters, gas bands, Saturn ring texture and the Sun's granular appearance with soft corona.
 
-`tests/surfaces.cjs` uses the existing bundled `@napi-rs/canvas` (resolve via NODE_PATH) to test nine procedural texture generators, map dimensions/variation, ring gap and corona center. Earth's 5400×2700 JPEG is checked separately. An optional output-path argument writes a CPU material preview; this is not WebGL rendering or browser interaction validation. Do not install packages to run it. See assets/README.md for NASA source, credit and SHA256.
+`tests/surfaces.cjs` uses the existing bundled `@napi-rs/canvas` (resolve via NODE_PATH) to test procedural texture generators, map dimensions/variation, ring gap and corona center. NASA Earth/Moon/Jupiter assets are checked separately. An optional output-path argument writes a CPU material preview; this is not WebGL rendering or browser interaction validation. Do not install packages to run it. See assets/README.md for NASA source, credit and SHA256.
 
 ## Eclipse demonstrations
 

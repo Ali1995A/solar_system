@@ -1,9 +1,11 @@
 // Uses the existing bundled @napi-rs/canvas; never installs dependencies.
 const {createCanvas} = require('@napi-rs/canvas');
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),path=require('node:path');
+const root=path.resolve(__dirname,'..');
 const context={window:{},document:{createElement:()=>createCanvas(1,1)},THREE:{CanvasTexture:class {constructor(image){this.image=image;}},sRGBEncoding:3001}};
 new Function('window','document','THREE',fs.readFileSync(path.join(__dirname,'../surfaces.js'),'utf8'))(context.window,context.document,context.THREE);
 const bodies=[['sun',0xffb638],['mercury',0x8b8b8b],['venus',0xe7c57f],['earth',0x3f78d1],['mars',0xc55a2a],['jupiter',0xd1b178],['saturn',0xe6c894],['uranus',0xa8d6d8],['neptune',0x4a63d8],['moon',0xc7c7c7]];
+for (const file of ['earth-blue-marble-200407.jpg','moon-lroc-color-1k.jpg','jupiter-hubble-global-map.jpg']) assert(fs.existsSync(path.join(root,'assets',file)),`missing ${file}`);
 const sheet=createCanvas(1200,590),ctx=sheet.getContext('2d');ctx.fillStyle='#09121d';ctx.fillRect(0,0,1200,590);
 ctx.fillStyle='#cfb68c';ctx.font='18px sans-serif';ctx.fillText('PROCEDURAL MATERIAL STUDIES / CPU preview, not WebGL verification',24,30);
 for(const [index,[name,base]] of bodies.filter(([name])=>name!=='earth').entries()) {
