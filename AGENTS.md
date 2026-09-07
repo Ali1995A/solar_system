@@ -1,6 +1,6 @@
 # Solar System Explorer handoff
 
-Status (2026-09-07): Earth clouds removed and real NASA cloud-free Blue Marble texture integrated in d3cca2d; Moon and Jupiter now use NASA/LRO and NASA/Hubble observation-based global maps, checked and ready to push. Browser visual acceptance remains pending; online deployment status unverified.
+Status (2026-09-07): Earth clouds removed in d3cca2d; Moon and Jupiter now use NASA/LRO and NASA/Hubble observation-based global maps in 5d44f43, checked and pushed to origin/main. Browser visual acceptance remains pending; online deployment status unverified.
 
 - Mode: software_app; compatible: learning_system. See project_mode.json.
 - Actual repository: https://github.com/Ali1995A/solar_system.git. test-demo is a containing folder, not the remote for this project. No parent-derived workspace was created; relationship files are not applicable.
@@ -18,3 +18,4 @@ Status (2026-09-07): Earth clouds removed and real NASA cloud-free Blue Marble t
 - Push verification: origin/main advanced 7ca983d..5f6b208 successfully without force. This subsequent documentation commit records the result; recommended application files remain those in 5f6b208.
 - Latest follow-up: user requested removal of clouds and realistic Earth imagery. NASA asset decoded at 5400×2700, inspected, and attributed in assets/README.md; no invented Earth bump maps remain. Tests/check.cjs, tests/eclipses.cjs, tests/surfaces.cjs and diff whitespace checks passed. Latest report section supersedes earlier Earth/cloud descriptions.
 - Texture follow-up: user asked whether Moon/Jupiter textures were real. They were procedural; assets/moon-lroc-color-1k.jpg and assets/jupiter-hubble-global-map.jpg now replace them, with NASA SVS attribution. All three image assets decode successfully; test suite rerun after fixing asset checks.
+- Texture push: 5d44f43 (Use NASA observation maps for Moon and Jupiter) pushed successfully without force.
