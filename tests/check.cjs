@@ -7,12 +7,13 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m => m[1]);
 scripts.forEach(script => new vm.Script(script));
 new vm.Script(fs.readFileSync(path.join(root, 'surfaces.js'), 'utf8'));
+new vm.Script(fs.readFileSync(path.join(root, 'eclipses.js'), 'utf8'));
 const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
 assert.equal(new Set(ids).size, ids.length, 'unique HTML IDs');
 for (const match of html.matchAll(/getElementById\(['"]([^'"]+)['"]\)/g)) assert(ids.includes(match[1]), `missing ${match[1]}`);
 const main = scripts.find(s => s.includes('const planetData'));
 const data = main.slice(main.indexOf('const planetData'), main.indexOf('const scene'));
-const context = vm.createContext({window:{THREE:{}}, THREE:{OrbitControls:true}});
+const context = vm.createContext({window:{THREE:{},makeSurface(){},createEclipseController(){}}, THREE:{OrbitControls:true}});
 vm.runInContext(data, context);
 const planets = vm.runInContext('planetData', context);
 assert.equal(planets.length, 8);
@@ -20,7 +21,7 @@ assert.deepEqual(Array.from(planets.filter(p => Math.cos(p.tilt * Math.PI / 180)
 const animate = main.slice(main.indexOf('function animate()'), main.indexOf('window.addEventListener("resize"'));
 function simulate(frames, dt, paused = false, hidden = false) {
     const groups = planets.map(p => ({group:{userData:{angle:0,speed:2*Math.PI/p.orbitalPeriod,moonOrbit:p.id==='earth'?{userData:{angle:0},rotation:{y:0}}:null}},pivot:{position:{}},mesh:{rotation:{y:0},userData:p},distance:100}));
-    const c = vm.createContext({requestAnimationFrame(){}, clock:{getDelta:()=>dt}, document:{hidden,getElementById:()=>({textContent:''})},getAppliedSpeed:()=>1,isPaused:paused,elapsedDays:0,DAYS_PER_SECOND:1,orbitGroups:groups,moonData:{orbitalPeriod:27.3},updateFocus(){},controls:{update(){}},renderer:{render(){}},scene:{},camera:{}});
+    const c = vm.createContext({eclipseController:{update(){}},requestAnimationFrame(){}, clock:{getDelta:()=>dt}, document:{hidden,getElementById:()=>({textContent:''})},getAppliedSpeed:()=>1,isPaused:paused,elapsedDays:0,DAYS_PER_SECOND:1,orbitGroups:groups,moonData:{orbitalPeriod:27.3},updateFocus(){},controls:{update(){}},renderer:{render(){}},scene:{},camera:{}});
     vm.runInContext(animate, c);
     for (let i=0;i<frames;i++) vm.runInContext('animate()', c);
     return {groups,elapsed:c.elapsedDays};

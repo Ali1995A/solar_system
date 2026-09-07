@@ -509,6 +509,15 @@
         .planet-chip i { display: block; width: 15px; height: 15px; border-radius: 50%; margin: 0 auto 8px; background: var(--planet-color); box-shadow: inset -4px -2px 5px #0008; }
         .planet-chip:hover, .planet-chip[aria-pressed='true'] { border-color: #a68655; background: #b8925815; color: #ffe0ad; }
         .hint { bottom: 18px; font-size: 10px; }
+        .eclipse-panel { position: fixed; right: 30px; top: 83px; width: 330px; padding: 12px; background: rgba(14,22,31,.93); border: 1px solid #45505a; border-radius: 5px; z-index: 8; }
+        .eclipse-buttons { display: flex; gap: 6px; }
+        .eclipse-buttons .btn { font-size: 10px; padding: 9px 5px; }
+        .btn:disabled { opacity: .4; cursor: default; }
+        .btn[aria-pressed='true'] { border-color: #e8bd7a; color: #e8bd7a; }
+        #eclipse-status { font-size: 11px; line-height: 1.65; color: #bac7d4; margin-top: 9px; }
+        #eclipse-controls { margin-top: 12px; }
+        #eclipse-progress { margin: 8px 0 12px; }
+        @media (max-width: 768px) { .eclipse-panel { top: auto; bottom: 131px; right: 18px; left: 18px; width: auto; max-height: 34dvh; overflow-y: auto; } }
         @media (max-width: 1000px) { .title { font-size: 22px; } .toolbar { top: 28px; right: 16px; } }
         @media (max-width: 768px) {
             .title { left: 18px; top: 18px; font-size: 21px; } .title span { display: none; } .title small { font-size: 8px; letter-spacing: 1px; }
@@ -533,6 +542,19 @@
             <button class="btn" id="north-view" type="button">北侧俯视</button>
             <button class="btn" id="panel-toggle" type="button" aria-controls="controls-panel" aria-expanded="true">控制面板</button>
         </div>
+        <section class="eclipse-panel" aria-label="日食月食演示">
+            <div class="eclipse-buttons">
+                <button class="btn" id="demo-solar" type="button" aria-pressed="false">演示日食</button>
+                <button class="btn" id="demo-lunar" type="button" aria-pressed="false">演示月食</button>
+                <button class="btn" id="eclipse-exit" type="button" disabled>恢复运行</button>
+            </div>
+            <p id="eclipse-status">选择演示，或在正常运行中观察食影。示意模型不预测实际日月食。</p>
+            <div id="eclipse-controls" hidden>
+                <label for="eclipse-progress">演示进度 · 拖动观察食影变化</label>
+                <input id="eclipse-progress" type="range" min="0" max="100" value="50">
+                <button id="eclipse-play" class="btn" type="button">播放过程</button>
+            </div>
+        </section>
         <div class="panel" id="controls-panel">
             <h3>时间与观测 · MISSION CONTROL</h3>
             <div class="control">
@@ -599,6 +621,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="surfaces.js"></script>
+    <script src="eclipses.js"></script>
     <script>
         const planetData = [
             {
@@ -708,8 +731,8 @@
         });
         const DAYS_PER_SECOND = 1;
         let elapsedDays = 0;
-        if (!window.THREE || !THREE.OrbitControls) {
-            document.getElementById('load-status').textContent = '3D library could not load. Check your connection and reload.';
+        if (!window.THREE || !THREE.OrbitControls || !window.makeSurface || !window.createEclipseController) {
+            document.getElementById('load-status').textContent = '渲染文件加载失败，请检查网络后刷新。静态部署须包含 surfaces.js 与 eclipses.js。';
             throw new Error('Three.js or OrbitControls unavailable');
         }
         const scene = new THREE.Scene();
@@ -988,13 +1011,14 @@
 
                 if (planet.id === "earth") {
                     const moonOrbit = new THREE.Group();
+                    moonOrbit.rotation.x = THREE.MathUtils.degToRad(5.145);
                     moonOrbit.userData = { angle: 0, speed: 0.8 };
                     const moonDistance = radius * 4.5;
                     const moonPivot = new THREE.Group();
                     moonPivot.position.x = moonDistance;
                     moonOrbit.add(moonPivot);
 
-                    const moonRadius = (moonData.diameter / 2) * SIZE_SCALE * 1.4 * visualScale;
+                    const moonRadius = radius * moonData.diameter / planet.diameter;
                     const moonGeometry = new THREE.SphereGeometry(moonRadius, 32, 32);
                     const moonSurface = makeSurface('moon', moonData.color);
                     const moonMaterial = new THREE.MeshStandardMaterial({
@@ -1469,6 +1493,7 @@
                 });
             }
 
+            eclipseController.update(delta);
             updateFocus();
             controls.update();
             renderer.render(scene, camera);
@@ -1550,6 +1575,20 @@
         document.getElementById('toggle-guides').addEventListener('change', event => {
             teachingGuides.forEach(guide => { guide.visible = event.target.checked; });
         });
+        const eclipseController = createEclipseController({
+            scene,camera,controls,
+            earthEntry:orbitGroups.find(entry=>entry.mesh.userData.id==='earth'),
+            moonMesh:planetMeshes.find(mesh=>mesh.userData.id==='moon'),
+            sunMesh:planetMeshes.find(mesh=>mesh.userData.id==='sun'),
+            getState:()=>({isPaused,focusTarget,activeFocusId,previousFocusPosition:previousFocusPosition?.clone()||null}),
+            setState:state=>{
+                isPaused=state.isPaused;focusTarget=state.focusTarget;activeFocusId=state.activeFocusId||'';previousFocusPosition=state.previousFocusPosition||null;
+                focusOptions.value=focusTarget;document.getElementById('toggle').textContent=isPaused?'继续':'暂停';
+                document.querySelectorAll('.planet-chip').forEach(chip=>chip.setAttribute('aria-pressed',String(chip.dataset.body===focusTarget)));
+            }
+        });
+        for(const id of ['reset-view','north-view','planet-dock'])document.getElementById(id).addEventListener('click',()=>eclipseController.stop(),true);
+        focusOptions.addEventListener('change',()=>{const chosen=focusOptions.value;eclipseController.stop();focusOptions.value=chosen;},true);
         if (controlsPanelIsMobileUi()) { setControlsPanelVisible(false); document.getElementById('panel-toggle').setAttribute('aria-expanded', 'false'); }
         animate();
     </script>

@@ -1,0 +1,42 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const source=fs.readFileSync(path.join(__dirname,'../eclipses.js'),'utf8');
+const api={};
+class V {constructor(x=0,y=0,z=0){this.set(x,y,z);}set(x,y,z){this.x=x;this.y=y;this.z=z;return this;}copy(v){return this.set(v.x,v.y,v.z);}clone(){return new V(this.x,this.y,this.z);}add(v){this.x+=v.x;this.y+=v.y;this.z+=v.z;return this;}}
+const elements=new Map();
+const element=id=>{if(!elements.has(id))elements.set(id,{value:'50',hidden:false,disabled:false,handlers:{},classList:{remove(){}},setAttribute(k,v){this[k]=v;},addEventListener(k,fn){this.handlers[k]=fn;}});return elements.get(id);};
+const three={Vector3:V,Color:class{},ShaderMaterial:class{constructor(o){Object.assign(this,o);}},SphereGeometry:class{},Mesh:class{constructor(g,m){this.material=m;}}};
+new Function('window','THREE','document',source)(api,three,{getElementById:element});
+// Factory's free EclipseMath name is a browser global; inject the tested implementation here.
+const controllerFactory=new Function('THREE','document','EclipseMath',`return (${api.createEclipseController.toString()});`)(three,{getElementById:element},api.EclipseMath);
+const math=api.EclipseMath;
+assert.equal(math.visibility(.1,.05,.3),1,'no overlap');
+assert.equal(math.visibility(.1,.12,0),0,'total occultation');
+assert(Math.abs(math.visibility(.1,.05,0)-.75)<1e-12,'annular area');
+assert(math.visibility(.1,.1,.1)>0&&math.visibility(.1,.1,.1)<1,'partial occultation');
+for(let d=0;d<.4;d+=.002)assert(Number.isFinite(math.visibility(.1,.08,d)),'finite boundaries');
+assert(math.offset('solar',.5,3).x<0&&math.offset('lunar',.5,3).x>0,'correct aligned side');
+assert(Math.abs(math.offset('solar',.5,3).z)<1e-12,'midpoint alignment');
+// Validate that demo proportions yield total eclipses, while endpoints clear the shadow.
+const er=1.25,mr=er*3474/12742,sr=696340*.000015,dist=Math.log10(149.6+1)*45+22;
+const solarS=Math.asin(sr/(dist-er)),solarM=Math.asin(mr/(er*2.8-er));
+assert.equal(math.visibility(solarS,solarM,0),0,'solar umbra reaches Earth');
+const lunarS=Math.asin(sr/(dist+er*2.8-mr)),lunarE=Math.asin(er/(er*2.8-mr));
+assert.equal(math.visibility(lunarS,lunarE,0),0,'Moon enters Earth umbra');
+const moonOrbit={userData:{angle:.7},rotation:{x:.09,y:.7}},moonPivot={position:new V(5.6,0,0)};
+const makeBody=(radius,pos)=>({userData:{radius},children:[],add(o){this.children.push(o);},getWorldPosition(v){return v.copy(pos);}});
+const earth=makeBody(er,new V(dist,0,0)),moon=makeBody(mr,new V(dist+3,0,0)),sun=makeBody(sr,new V());moon.parent=moonPivot;
+const entry={mesh:earth,pivot:{position:new V(85,0,-60)},distance:dist,group:{userData:{angle:.4,moonOrbit}}};
+const camera={position:new V(1,2,3)},controls={target:new V(4,5,6),update(){}};
+let app={isPaused:false,focusTarget:'earth'};
+const controller=controllerFactory({scene:{updateMatrixWorld(){}},camera,controls,earthEntry:entry,moonMesh:moon,sunMesh:sun,getState:()=>({...app}),setState:s=>{app={...s};}});
+controller.start('solar');assert.equal(app.isPaused,true);assert.equal(moonOrbit.rotation.x,0);assert.equal(element('eclipse-controls').hidden,false);
+assert(Math.abs(moonOrbit.rotation.y-Math.PI)<1e-12);assert.equal(earth.children.length,1);assert.equal(moon.children.length,1);
+controller.start('lunar');assert.equal(moonOrbit.rotation.y,0);
+element('eclipse-play').handlers.click();controller.update(12);assert.equal(element('eclipse-progress').value,'50');
+controller.update(12);assert.equal(element('eclipse-progress').value,'100');
+controller.stop();assert.equal(app.isPaused,false);assert.equal(app.focusTarget,'earth');assert.equal(entry.group.userData.angle,.4);assert.equal(moonOrbit.rotation.x,.09);assert.equal(moonOrbit.rotation.y,.7);assert.equal(moonPivot.position.x,5.6);assert.deepEqual(camera.position,new V(1,2,3));
+assert.equal(element('toggle').disabled,false);assert.equal(element('eclipse-controls').hidden,true);
+controller.stop();controller.update(0);
+const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+for(const m of source.matchAll(/getElementById\('([^']+)'\)/g))assert(html.includes(`id="${m[1]}"`),`missing ${m[1]}`);
+console.log('PASS: eclipse disk overlap, demo totality geometry, solar/lunar alignment, playback, switching, controls and state restoration. Shader rendering requires browser validation.');

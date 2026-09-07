@@ -1,6 +1,6 @@
 # Solar System Explorer
 
-A static interactive 3D solar system built with Three.js and vanilla JavaScript. The recommended local version consists of `index.html` and `surfaces.js`. This is the independent repository `Ali1995A/solar_system`, nested in a local `test-demo` directory.
+A static interactive 3D solar system built with Three.js and vanilla JavaScript. The recommended version consists of `index.html`, `surfaces.js` and `eclipses.js`. This is the independent repository `Ali1995A/solar_system`, nested in a local `test-demo` directory.
 
 ## Features
 
@@ -19,7 +19,7 @@ A static interactive 3D solar system built with Three.js and vanilla JavaScript.
 
 ## Run
 
-Open `index.html` in a modern browser with WebGL and network access to the two CDN libraries. Keep `surfaces.js` alongside it. Static hosting must publish both files; there is no build step or terminal-dependent backend. No dependency installation is required.
+Open `index.html` in a modern browser with WebGL and network access to the two CDN libraries. Keep `surfaces.js` and `eclipses.js` alongside it. Static hosting must publish all three files; there is no build step or terminal-dependent backend. No dependency installation is required.
 
 ## Controls
 
@@ -32,7 +32,7 @@ Open `index.html` in a modern browser with WebGL and network access to the two C
 
 No external textures are used; textures are generated locally. Three.js and OrbitControls still require network access, so this is not an offline bundle.
 
-All orbits are circular and coplanar with illustrative random initial phases. This is not an ephemeris, a scale model, or a map of the current sky. The constellation sketches are not astronomical coordinates. Surface illustrations are not satellite images. The Sun surface is a static illustration and does not simulate differential rotation. High time speeds can cause apparent reversed rotation through temporal aliasing.
+Planetary orbits are circular and coplanar with illustrative random initial phases; the Moon orbit is tilted approximately 5.145 degrees except during aligned demonstrations. This is not an ephemeris, a scale model, or a map of the current sky. The constellation sketches are not astronomical coordinates. Surface illustrations are not satellite images. The Sun surface is a static illustration and does not simulate differential rotation. High time speeds can cause apparent reversed rotation through temporal aliasing.
 
 Coordinate convention: +Y is ecliptic north. A prograde orbit uses x = r cos(theta), z = -r sin(theta); positive local Y rotation is prograde before tilt. Venus (177.4°) and Uranus (97.8°) have positive local rotation magnitudes with inverted axis projections, so no additional negative rate is applied. Moon orbit is attached to Earth's translating pivot, independent of Earth's axial tilt/spin; its rotating orbit frame keeps one lunar hemisphere Earth-facing in this simplified model.
 
@@ -49,3 +49,11 @@ The persistent white surface dot was a teaching marker, not a city, specular gli
 Earth has separate transparent clouds, sun-facing atmospheric rim, land relief and ocean/land roughness. Rock bodies use relief maps and softened crater rims. Gas bands use lower contrast and mottling; Jupiter's storm fades into the cloud bands. Saturn has radial ring texture with a visible gap. The Sun uses an unlit granular surface and soft corona, avoiding a metallic-looking surface illuminated from its own center. These remain artistic illustrations.
 
 `tests/surfaces.cjs` uses the existing bundled `@napi-rs/canvas` (resolve via NODE_PATH) to test all ten texture generators, map dimensions/variation, cloud alpha, ring gap and corona center. An optional output-path argument writes a CPU material preview; this is not WebGL rendering or browser interaction validation. Do not install packages to run it.
+
+## Eclipse demonstrations
+
+Use 演示日食 / 演示月食 for automatic alignment and close-up camera positioning. Each opens at mid-eclipse; drag the progress slider or use 播放过程 for a 24-second illustrative passage. 恢复运行 restores the previous orbit position, Moon inclination/distance, camera, focus and pause state. Selecting another body or overview exits the demo.
+
+`eclipses.js` computes finite solar-disk occultation at each receiving surface point using apparent angular radii and circle-overlap area. Earth and clouds receive the lunar shadow; the Moon receives Earth's shadow, with dark red tint illustrating atmospheric refraction (not a radiative-transfer simulation). It is an analytic shadow overlay, not a point-source shadow map or a prepainted dark spot. Earth/Moon diameter ratio uses the existing diameter data; demo distance and orbital plane are temporarily changed for clear totality. This exaggerated scene does not reproduce real eclipse frequency, duration, path or date.
+
+Reference: [NASA eclipse geometry](https://science.nasa.gov/eclipses/geometry/) and [NASA Moon eclipses](https://science.nasa.gov/moon/eclipses/), checked 2026-09-07. Run `node tests/eclipses.cjs` for overlap, alignment, totality proportions, playback and restoration checks. GPU shader compilation and browser visual acceptance remain pending.
