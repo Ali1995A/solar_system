@@ -54,6 +54,8 @@ Earth uses NASA's cloud-free July 2004 composite, Moon uses NASA/LRO's WAC color
 
 ## Eclipse demonstrations
 
+Tap a body or its dock button to see its key fact. `更多数据` expands the original measurements; tap empty space or the close button to dismiss. Dragging still rotates the scene. Use `日月食` for the explanation and demos, or `更多控制` for advanced settings and north view. These panels start collapsed and remain mutually exclusive. Phone layouts reserve safe areas and scroll long content above the body dock; see `docs/mobile-layout-20261018.md` for verification and device limits.
+
 Use 演示日食 / 演示月食 for automatic alignment and close-up camera positioning. Each opens at mid-eclipse; drag the progress slider or use 播放过程 for a 24-second illustrative passage. 恢复运行 restores the previous orbit position, Moon inclination/distance, camera, focus and pause state. Selecting another body or overview exits the demo.
 
 `eclipses.js` computes finite solar-disk occultation at each receiving surface point using apparent angular radii and circle-overlap area. Earth receives the lunar shadow; the Moon receives Earth's shadow, with dark red tint illustrating atmospheric refraction (not a radiative-transfer simulation). It is an analytic shadow overlay, not a point-source shadow map or a prepainted dark spot. Earth/Moon diameter ratio uses the existing diameter data; demo distance and orbital plane are temporarily changed for clear totality. This exaggerated scene does not reproduce real eclipse frequency, duration, path or date.

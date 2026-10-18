@@ -539,11 +539,12 @@
 
         <div class="toolbar">
             <button class="btn" id="reset-view" type="button">全景</button>
-            <button class="btn" id="north-view" type="button">北侧俯视</button>
-            <button class="btn" id="panel-toggle" type="button" aria-controls="controls-panel observation-panels" aria-expanded="true">控制面板</button>
+            <button class="btn" id="eclipse-toggle" type="button" aria-controls="observation-panels" aria-expanded="false">日月食</button>
+            <button class="btn" id="panel-toggle" type="button" aria-controls="controls-panel observation-panels" aria-expanded="false">更多控制</button>
         </div>
-        <div class="observation-panels" id="observation-panels" tabindex="0">
+        <div class="observation-panels is-hidden" id="observation-panels" data-section="controls" tabindex="0">
         <section class="eclipse-panel" aria-label="日食月食演示">
+            <p class="eclipse-intro">日食：月球挡住太阳。月食：地球的影子落在月球上。点一下，看演示。</p>
             <div class="eclipse-buttons">
                 <button class="btn" id="demo-solar" type="button" aria-pressed="false">演示日食</button>
                 <button class="btn" id="demo-lunar" type="button" aria-pressed="false">演示月食</button>
@@ -559,6 +560,7 @@
         <div class="panel" id="controls-panel">
             <p id="load-status" role="status">Loading the solar system…</p>
             <h3>时间与观测 · MISSION CONTROL</h3>
+            <button class="btn" id="north-view" type="button">北侧俯视</button>
             <div class="control">
                 <label for="speed">模拟速度 · 地球日 / 秒</label>
                 <div class="speed-grid">
@@ -604,14 +606,18 @@
         </div>
 
         <div class="info" id="info" tabindex="0">
-            <button class="close" id="close" aria-label="Close planet information">×</button>
-            <h2 id="infoName">Planet</h2>
-            <div class="info-item"><span>Diameter</span><span id="infoDiameter">-</span></div>
-            <div class="info-item"><span id="distanceLabel">Mean from Sun</span><span id="infoDistance">-</span></div>
-            <div class="info-item"><span>Orbital Period</span><span id="infoOrbit">-</span></div>
-            <div class="info-item"><span>Sidereal rotation</span><span id="infoDay">-</span></div>
-            <div class="info-item"><span>自转方向 / 轴倾角</span><span id="infoSpin">-</span></div>
+            <div class="info-header">
+            <button class="close" id="close" aria-label="关闭说明">×</button>
+            <h2 id="infoName">天体提示</h2>
+            </div>
             <div class="fact" id="infoFact">-</div>
+            <details id="info-details"><summary>更多数据</summary>
+            <div class="info-item"><span>直径</span><span id="infoDiameter">-</span></div>
+            <div class="info-item"><span id="distanceLabel">Mean from Sun</span><span id="infoDistance">-</span></div>
+            <div class="info-item"><span>公转周期</span><span id="infoOrbit">-</span></div>
+            <div class="info-item"><span>自转周期</span><span id="infoDay">-</span></div>
+            <div class="info-item"><span>自转方向 / 轴倾角</span><span id="infoSpin">-</span></div>
+            </details>
         </div>
 
         <div class="tooltip" id="tooltip">
@@ -620,7 +626,7 @@
         </div>
 
         <nav id="planet-dock" aria-label="选择天体"></nav>
-        <div class="hint">拖动环绕 · 滚轮缩放 · 空格暂停 · Esc 关闭详情</div>
+        <div class="hint">点天体看提示 · 点空白收起 · 拖动转一转</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -736,8 +742,10 @@
         });
         const DAYS_PER_SECOND = 1;
         let elapsedDays = 0;
+        const revealLoadFailure = () => document.getElementById("observation-panels").classList.remove("is-hidden");
         if (!window.THREE || !THREE.OrbitControls || !window.makeSurface || !window.createEclipseController) {
             document.getElementById('load-status').textContent = '渲染文件加载失败，请检查网络后刷新。静态部署须包含 surfaces.js 与 eclipses.js。';
+            revealLoadFailure();
             throw new Error('Three.js or OrbitControls unavailable');
         }
         const scene = new THREE.Scene();
@@ -751,6 +759,7 @@
             renderer = new THREE.WebGLRenderer({ antialias: true });
         } catch (error) {
             document.getElementById('load-status').textContent = 'WebGL is unavailable. Enable hardware acceleration or try another browser.';
+            revealLoadFailure();
             throw error;
         }
         const isTouchDevice = window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
@@ -764,18 +773,20 @@
         document.getElementById("scene").appendChild(renderer.domElement);
 
         const controlsPanel = document.querySelector(".panel");
-        let controlsPanelVisible = true;
+        let controlsPanelVisible = false;
         let controlsPanelHideTimer = null;
         const compactUi = window.matchMedia("(max-width: 768px), (max-width: 1000px) and (max-height: 500px)");
         const controlsPanelIsMobileUi = () => compactUi.matches || window.matchMedia("(pointer: coarse)").matches;
-        let wasCompactUi = compactUi.matches;
-        const setControlsPanelVisible = visible => {
+        const setControlsPanelVisible = (visible, section = "controls") => {
             if (!controlsPanel) return;
             controlsPanelVisible = visible;
             controlsPanel.classList.toggle("is-hidden", !visible);
-            document.getElementById("observation-panels").classList.toggle("is-hidden", !visible);
-            if (visible && compactUi.matches) document.getElementById("info").classList.remove("active");
-            document.getElementById('panel-toggle').setAttribute('aria-expanded', String(visible));
+            const panels = document.getElementById("observation-panels");
+            panels.dataset.section = section;
+            panels.classList.toggle("is-hidden", !visible);
+            if (visible) document.getElementById("info").classList.remove("active");
+            document.getElementById('panel-toggle').setAttribute('aria-expanded', String(visible && section === 'controls'));
+            document.getElementById('eclipse-toggle').setAttribute('aria-expanded', String(visible && section === 'eclipses'));
         };
         const clearControlsPanelHideTimer = () => {
             if (controlsPanelHideTimer) {
@@ -1305,20 +1316,35 @@
             }
         }
 
+        // Chinese wording of the existing body facts; no new scientific claims.
+        const bodyFacts = {
+            mercury: '水星的温差非常大：从零下 180°C 到 430°C。',
+            venus: '金星反着自转，它的表面是所有行星中最热的。',
+            earth: '地球是目前已知唯一有生命的星球。',
+            mars: '火星上的奥林帕斯山，是太阳系中最高的火山。',
+            jupiter: '木星的大红斑是一场比地球还大的风暴。',
+            saturn: '土星环主要由冰和岩石碎片组成。',
+            uranus: '天王星几乎躺着自转，地轴倾斜约 98°。',
+            neptune: '海王星上的风速可达每小时 2,100 千米，超过音速。',
+            moon: '月球帮助稳定地球的地轴倾角，也带来了潮汐。'
+        };
+
         function showInfo(data) {
-            if (compactUi.matches) setControlsPanelVisible(false);
+            setControlsPanelVisible(false);
+            if (info.dataset.body !== data.id) document.getElementById("info-details").open = false;
+            info.dataset.body = data.id;
             info.scrollTop = 0;
-            document.getElementById("infoName").textContent = data.name;
+            document.getElementById("infoName").textContent = `${bodyLabels[data.id] || data.name} · ${data.name}`;
             document.getElementById('infoSpin').textContent = Number.isFinite(data.tilt) ? `${data.tilt > 90 ? '逆行' : '顺行'} · ${data.tilt}°` : (data.id === 'moon' ? '同步自转 · 顺行' : '较差自转 · 纹理静态示意');
             document.getElementById("infoDiameter").textContent = `${data.diameter.toLocaleString()} km`;
             const distance = typeof data.distance === "number"
                 ? `${data.distance.toLocaleString()} million km`
                 : data.distance;
             document.getElementById("infoDistance").textContent = distance;
-            document.getElementById('distanceLabel').textContent = data.name === 'Moon' ? 'From Earth' : 'Mean from Sun';
+            document.getElementById('distanceLabel').textContent = data.name === 'Moon' ? '距地球' : '距太阳（平均）';
             document.getElementById("infoOrbit").textContent = data.orbitalPeriod ? `${data.orbitalPeriod} Earth days` : '—';
             document.getElementById("infoDay").textContent = data.dayLength;
-            document.getElementById("infoFact").textContent = data.fact;
+            document.getElementById("infoFact").textContent = bodyFacts[data.id] || data.fact;
             info.classList.add("active");
         }
 
@@ -1359,8 +1385,10 @@
             pointerDown = null;
             if (moved > 8) return;
             const picked = pickPlanet(event);
-            if (!picked && controlsPanelIsMobileUi() && !controlsPanelVisible) {
-                keepControlsPanelVisibleBriefly();
+            if (!picked) {
+                info.classList.remove("active");
+                tooltip.classList.remove("active", "force");
+                setControlsPanelVisible(false);
             }
         });
 
@@ -1547,12 +1575,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             const touch = window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, touch ? 1.5 : 2));
-            const compact = compactUi.matches;
-            if (!controlsPanelIsMobileUi() || compact !== wasCompactUi) {
-                clearControlsPanelHideTimer();
-                setControlsPanelVisible(!controlsPanelIsMobileUi());
-            }
-            wasCompactUi = compact;
         });
 
         document.addEventListener('visibilitychange', () => clock.getDelta());
@@ -1574,11 +1596,13 @@
             document.querySelectorAll('.planet-chip').forEach(chip => chip.setAttribute('aria-pressed', 'false'));
         });
         document.getElementById('panel-toggle').addEventListener('click', event => {
-            setControlsPanelVisible(!controlsPanelVisible);
-            event.currentTarget.setAttribute('aria-expanded', String(controlsPanelVisible));
+            setControlsPanelVisible(event.currentTarget.getAttribute('aria-expanded') !== 'true', 'controls');
+        });
+        document.getElementById('eclipse-toggle').addEventListener('click', event => {
+            setControlsPanelVisible(event.currentTarget.getAttribute('aria-expanded') !== 'true', 'eclipses');
         });
         window.addEventListener('keydown', event => {
-            if (event.key === 'Escape') { info.classList.remove('active'); tooltip.classList.remove('active', 'force'); return; }
+            if (event.key === 'Escape') { setControlsPanelVisible(false); info.classList.remove('active'); tooltip.classList.remove('active', 'force'); return; }
             if (/INPUT|SELECT|TEXTAREA|BUTTON/.test(document.activeElement.tagName)) return;
             if (event.code === 'Space') { event.preventDefault(); document.getElementById('toggle').click(); }
         });
@@ -1634,7 +1658,7 @@
         });
         for(const id of ['reset-view','north-view','planet-dock'])document.getElementById(id).addEventListener('click',()=>eclipseController.stop(),true);
         focusOptions.addEventListener('change',()=>{const chosen=focusOptions.value;eclipseController.stop();focusOptions.value=chosen;},true);
-        if (controlsPanelIsMobileUi()) { setControlsPanelVisible(false); document.getElementById('panel-toggle').setAttribute('aria-expanded', 'false'); }
+        setControlsPanelVisible(false);
         animate();
     </script>
 </body>
