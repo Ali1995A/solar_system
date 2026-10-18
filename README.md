@@ -19,6 +19,8 @@ A static interactive 3D solar system built with Three.js and vanilla JavaScript.
 
 ## Run
 
+Publish `mobile.css` alongside `index.html`, `surfaces.js`, `eclipses.js` and `assets/`. On compact screens, the control-panel button opens one scrollable sheet containing both eclipse demonstrations and observation controls. Planet details replace that sheet; the body dock remains reachable. See [mobile layout verification](docs/mobile-layout-20261018.md) for the tested viewport matrix and real-device limitations.
+
 Open `index.html` in a modern browser with WebGL and network access to the two CDN libraries. Keep `surfaces.js` and `eclipses.js` alongside it. Static hosting must publish all three files; there is no build step or terminal-dependent backend. No dependency installation is required.
 
 ## Controls
@@ -51,6 +53,8 @@ Earth uses NASA's cloud-free July 2004 composite, Moon uses NASA/LRO's WAC color
 `tests/surfaces.cjs` uses the existing bundled `@napi-rs/canvas` (resolve via NODE_PATH) to test procedural texture generators, map dimensions/variation, ring gap and corona center. NASA Earth/Moon/Jupiter assets are checked separately. An optional output-path argument writes a CPU material preview; this is not WebGL rendering or browser interaction validation. Do not install packages to run it. See assets/README.md for NASA source, credit and SHA256.
 
 ## Eclipse demonstrations
+
+Tap a body or its dock button to see its key fact. `更多数据` expands the original measurements; tap empty space or the close button to dismiss. Dragging still rotates the scene. Use `日月食` for the explanation and demos, or `更多控制` for advanced settings and north view. These panels start collapsed and remain mutually exclusive. Phone layouts reserve safe areas and scroll long content above the body dock; see `docs/mobile-layout-20261018.md` for verification and device limits.
 
 Use 演示日食 / 演示月食 for automatic alignment and close-up camera positioning. Each opens at mid-eclipse; drag the progress slider or use 播放过程 for a 24-second illustrative passage. 恢复运行 restores the previous orbit position, Moon inclination/distance, camera, focus and pause state. Selecting another body or overview exits the demo.
 
