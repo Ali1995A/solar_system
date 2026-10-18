@@ -19,6 +19,8 @@ A static interactive 3D solar system built with Three.js and vanilla JavaScript.
 
 ## Run
 
+Publish `mobile.css` alongside `index.html`, `surfaces.js`, `eclipses.js` and `assets/`. On compact screens, the control-panel button opens one scrollable sheet containing both eclipse demonstrations and observation controls. Planet details replace that sheet; the body dock remains reachable. See [mobile layout verification](docs/mobile-layout-20261018.md) for the tested viewport matrix and real-device limitations.
+
 Open `index.html` in a modern browser with WebGL and network access to the two CDN libraries. Keep `surfaces.js` and `eclipses.js` alongside it. Static hosting must publish all three files; there is no build step or terminal-dependent backend. No dependency installation is required.
 
 ## Controls

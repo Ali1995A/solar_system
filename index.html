@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>太阳系观测台 · Solar System Explorer</title>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-WDYTYY158T"></script>
@@ -529,10 +529,10 @@
             .hint { bottom: 12px; font-size: 9px; }
         }
     </style>
+    <link rel="stylesheet" href="mobile.css">
 </head>
 <body>
     <div id="scene"></div>
-    <p id="load-status" role="status">Loading the solar system…</p>
 
     <div class="overlay">
         <div class="title"><small>ORBITAL OBSERVATORY / 01</small>太阳系观测台<span>Solar System Explorer</span></div>
@@ -540,8 +540,9 @@
         <div class="toolbar">
             <button class="btn" id="reset-view" type="button">全景</button>
             <button class="btn" id="north-view" type="button">北侧俯视</button>
-            <button class="btn" id="panel-toggle" type="button" aria-controls="controls-panel" aria-expanded="true">控制面板</button>
+            <button class="btn" id="panel-toggle" type="button" aria-controls="controls-panel observation-panels" aria-expanded="true">控制面板</button>
         </div>
+        <div class="observation-panels" id="observation-panels" tabindex="0">
         <section class="eclipse-panel" aria-label="日食月食演示">
             <div class="eclipse-buttons">
                 <button class="btn" id="demo-solar" type="button" aria-pressed="false">演示日食</button>
@@ -556,6 +557,7 @@
             </div>
         </section>
         <div class="panel" id="controls-panel">
+            <p id="load-status" role="status">Loading the solar system…</p>
             <h3>时间与观测 · MISSION CONTROL</h3>
             <div class="control">
                 <label for="speed">模拟速度 · 地球日 / 秒</label>
@@ -599,7 +601,9 @@
             <p class="model-note"><a href="https://ssd.jpl.nasa.gov/planets/phys_par.html" target="_blank" rel="noopener noreferrer">NASA/JPL · rotation and orbital data</a></p>
         </div>
 
-        <div class="info" id="info">
+        </div>
+
+        <div class="info" id="info" tabindex="0">
             <button class="close" id="close" aria-label="Close planet information">×</button>
             <h2 id="infoName">Planet</h2>
             <div class="info-item"><span>Diameter</span><span id="infoDiameter">-</span></div>
@@ -762,11 +766,15 @@
         const controlsPanel = document.querySelector(".panel");
         let controlsPanelVisible = true;
         let controlsPanelHideTimer = null;
-        const controlsPanelIsMobileUi = () => window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
+        const compactUi = window.matchMedia("(max-width: 768px), (max-width: 1000px) and (max-height: 500px)");
+        const controlsPanelIsMobileUi = () => compactUi.matches || window.matchMedia("(pointer: coarse)").matches;
+        let wasCompactUi = compactUi.matches;
         const setControlsPanelVisible = visible => {
             if (!controlsPanel) return;
             controlsPanelVisible = visible;
             controlsPanel.classList.toggle("is-hidden", !visible);
+            document.getElementById("observation-panels").classList.toggle("is-hidden", !visible);
+            if (visible && compactUi.matches) document.getElementById("info").classList.remove("active");
             document.getElementById('panel-toggle').setAttribute('aria-expanded', String(visible));
         };
         const clearControlsPanelHideTimer = () => {
@@ -1298,6 +1306,8 @@
         }
 
         function showInfo(data) {
+            if (compactUi.matches) setControlsPanelVisible(false);
+            info.scrollTop = 0;
             document.getElementById("infoName").textContent = data.name;
             document.getElementById('infoSpin').textContent = Number.isFinite(data.tilt) ? `${data.tilt > 90 ? '逆行' : '顺行'} · ${data.tilt}°` : (data.id === 'moon' ? '同步自转 · 顺行' : '较差自转 · 纹理静态示意');
             document.getElementById("infoDiameter").textContent = `${data.diameter.toLocaleString()} km`;
@@ -1537,10 +1547,12 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             const touch = window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, touch ? 1.5 : 2));
-            if (!controlsPanelIsMobileUi()) {
+            const compact = compactUi.matches;
+            if (!controlsPanelIsMobileUi() || compact !== wasCompactUi) {
                 clearControlsPanelHideTimer();
-                setControlsPanelVisible(true);
+                setControlsPanelVisible(!controlsPanelIsMobileUi());
             }
+            wasCompactUi = compact;
         });
 
         document.addEventListener('visibilitychange', () => clock.getDelta());
@@ -1571,6 +1583,7 @@
             if (event.code === 'Space') { event.preventDefault(); document.getElementById('toggle').click(); }
         });
         renderer.domElement.addEventListener('webglcontextlost', event => {
+            setControlsPanelVisible(true);
             event.preventDefault();
             document.getElementById('load-status').hidden = false;
             document.getElementById('load-status').textContent = 'Graphics context lost. Reload to restore the simulation.';
